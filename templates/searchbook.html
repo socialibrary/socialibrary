@@ -1,0 +1,58 @@
+ {% extends "base.html" %}
+
+{% block title %}Recent Runs{% endblock %}
+{% block body %}
+<div id="runs">
+  {% if user_recent_runs %}
+  <div id="recent-runs">
+    <h1>Your Recent Runs</h1>
+  </div>
+  {% endif %}
+
+  <div class="main">
+    <h1>Where did you run recently?</h1>
+
+    <form action="/sbook" method="post">
+      <div style="display: none">
+        <input type="hidden" name="_csrf_token" value="{{ csrf_token }}">
+      </div>
+
+      <div>
+        <label for="location">Title</label>
+        <input id="booktitle" name="booktitle" class="text" type="text">
+      </div>
+      <div>
+        <label for="distance">Author</label>
+        <input id="author" name="author" class="text" type="text">
+      </div>
+      <div class="buttons">
+        <input class="awesome green" type="submit" value="Add Run">
+      </div>
+
+    </form>
+        <a class="name" href="/book">
+         BBB
+        </a>
+       <a class="name" href="/game">
+         GGG
+        </a>
+         <a class="name" href="/movie">
+         MMM
+        </a>
+  </div>
+  {% if nokeyword %}
+        <div >
+        Please enter either the Title or Author
+        </div>
+    {% endif %}
+    
+  {% if books %}
+        {% for book in books %}
+        <div >
+        {{ book.title}}
+        </div>
+        {% endfor %}    
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
