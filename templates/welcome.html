@@ -42,6 +42,7 @@
        FB.logout(function(response) {
          console.log('Logged out.');
        });
+     top.location.href = 'http://apps.facebook.com/socialibrary';  
      });
    } else {
      console.log('User cancelled login or did not fully authorize.');
@@ -49,6 +50,7 @@
  }, {scope: 'user_location'});
 
     
+
     
     }
     
