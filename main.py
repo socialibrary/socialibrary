@@ -47,25 +47,20 @@ from google.appengine.api import urlfetch
 import locale
 import urllib2
 
-
-
 def htmlescape(text):
     """Escape text for use as HTML"""
     return cgi.escape(
         text, True).replace("'", '&#39;').encode('ascii', 'xmlcharrefreplace')
-
 
 @register.filter(name=u'get_name')
 def get_name(dic, index):
     """Django template filter to render name"""
     return dic[index].name
 
-
 @register.filter(name=u'get_picture')
 def get_picture(dic, index):
     """Django template filter to render picture"""
     return dic[index].picture
-
 
 def select_random(lst, limit):
     """Select a limited set of random non Falsy values from a list"""
@@ -80,7 +75,6 @@ def select_random(lst, limit):
             limit = limit - 1
             final.append(elem)
     return final
-
 
 _USER_FIELDS = u'name,email,picture,friends,location'
 class User(db.Model):
@@ -115,22 +109,30 @@ class User(db.Model):
         self.friends = [user[u'id'] for user in me[u'friends'][u'data']]
         return self.put()
 
-
 class Book(db.Model):
-    asin = db.StringProperty(required=True)
-    
     title = db.StringProperty(required=True)
-    author = db.StringProperty()
-    image = db.StringProperty()
+    author = db.StringProperty(required=True)
+    rating = db.IntegerProperty()
+
+class Game(db.Model):
+    title = db.StringProperty(required=True)
+    platform = db.StringProperty()
     pageurl = db.StringProperty()
-    
+    rating = db.IntegerProperty()
 
+class Movie(db.Model):
+    title = db.StringProperty(required=True)
+    actors = db.StringProperty()
+    pageurl = db.StringProperty()
+    rating = db.IntegerProperty()
 
-
+class Fact(db.Model):
+    userID=db.IntegerProperty()
+    category=db.IntegerProperty()
+    itemID=db.IntegerProperty()
 
 class RunException(Exception):
     pass
-
 
 class FacebookApiError(Exception):
     def __init__(self, result):
@@ -210,10 +212,8 @@ class Facebook(object):
     def base64_url_encode(data):
         return base64.urlsafe_b64encode(data).rstrip('=')
 
-
 class CsrfException(Exception):
     pass
-
 
 class BaseHandler(webapp.RequestHandler):
     facebook = None
@@ -279,6 +279,8 @@ class BaseHandler(webapp.RequestHandler):
         data[u'message'] = self.get_message()
         data[u'csrf_token'] = self.csrf_token
         data[u'canvas_name'] = conf.FACEBOOK_CANVAS_NAME
+
+        
         self.response.out.write(template.render(
             os.path.join(
                 os.path.dirname(__file__), 'templates', name + '.html'),
@@ -373,10 +375,34 @@ class WelcomeHandler(BaseHandler):
             else:
             	self.render(u'welcome')
 
+class SearchItemHandler(BaseHandler):
+    """ Search action for game, action or book """
+    def get(self):
+        if self.user:
+            """ web response to search query """
+            category = self.request.get("category")
+            if category == 3:
+                searchtext = self.request.get("title")
+                query = Game.gql("WHERE title = '%s'", searchtext)
+                game = query.fetch(1)
+                query = Fact.gql("WHERE itemID = :1 AND category = :2", game.key().id(), 3)
+        else:
+            self.render(u'welcome')
+
+class SearchHandler(BaseHandler):
+    """ Search action for game, action or book """
+    def get(self):
+        if self.user:
+            """ web response to search query """
+            self.render(u'search')
+        else:
+            self.render(u'welcome')
 
 def main():
     routes = [
         (r'/', WelcomeHandler),
+        (r'/search', SearchHandler),
+        (r'/searchitem', SearchItemHandler),
     ]
     application = webapp.WSGIApplication(routes,
         debug=os.environ.get('SERVER_SOFTWARE', '').startswith('Dev'))
