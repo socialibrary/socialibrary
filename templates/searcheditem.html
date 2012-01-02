@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+
+{% block title %}Search SociaLibrary{% endblock %}
+{% block body %}
+Found item: <b> {{titletext}} </b>
+<table name="userlist" id="userlist">
+{% for user in users %}
+<tr>
+  <td> {{ user.userName }} </td>
+</tr>
+{% endfor %}
+</table>
+{% endblock %}

@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+
+{% block title %}Search socialibrary{% endblock %}
+{% block body %}
+<script type="text/javascript">
+  var txt_book =  "Search category: <select name='category' id='category' onchange='formreload(this.form)'> \
+      <option value='1' selected='selected'>Book<\/option> \
+      <option value='2'>Movie<\/option> \
+      <option value='3'>Game<\/option> \
+      <\/select> <br\/> <br\/> \
+ \
+      <select name='rating' id='rating'> \
+      <option value='1'>1<\/option> \
+      <option value='2'>2<\/option> \
+      <option value='3'>3<\/option> \
+      <option value='4'>4<\/option> \
+      <option value='5'>5<\/option> \
+      <\/select> <br\/> <br\/> \
+ \
+    Author: <input type='text' name='author' id='author'\/> <br\/> <br\/> \
+    Title: <input type='text' name='title' id='title'\/> <br\/> <br\/> \
+ \
+    <input type='submit' value='add book' name='addbook' id='addbook'\/> \
+    ";
+
+    var txt_Movie = "Search category: <select name='category' id='category' onchange='formreload(this.form)'> \
+      <option value='1'>Book<\/option> \
+      <option value='2' selected='selected'>Movie<\/option> \
+      <option value='3'>Game<\/option> \
+      <\/select> <br\/> <br\/> \
+ \
+      <select name='rating' id='rating'> \
+      <option value='1'>1<\/option> \
+      <option value='2'>2<\/option> \
+      <option value='3'>3<\/option> \
+      <option value='4'>4<\/option> \
+      <option value='5'>5<\/option> \
+      <\/select> <br\/> <br\/> \
+ \
+    Actor: <input type='text' name='actor' id='actor'\/> <br\/> <br\/> \
+    Title: <input type='text' name='title' id='title'\/> <br\/> <br\/> \
+    Genre: <input type='text' name='genre' id='genre'\/> <br\/> <br\/> \
+ \
+    <input type='submit' value='add movie' name='addmovie' id='addmovie'\/> \
+    ";
+
+  var txt_Game = "Search category: <select name='category' id='category' onchange='formreload(this.form)'> \
+      <option value='1'>Book<\/option> \
+      <option value='2'>Movie<\/option> \
+      <option value='3' selected='selected'>Game<\/option> \
+    <\/select> <br\/> <br\/> \
+ \
+      <select name='rating' id='rating'> \
+      <option value='1'>1<\/option> \
+      <option value='2'>2<\/option> \
+      <option value='3'>3<\/option> \
+      <option value='4'>4<\/option> \
+      <option value='5'>5<\/option> \
+      <\/select> <br\/> <br\/> \
+ \
+    Title: <input type='text' name='title' id='title'\/> <br\/> <br\/> \
+ \
+    <input type='submit' value='add game' name='addgame' id='addgame'\/> \
+    ";
+
+  function formreload(form)
+  {
+    var dropdownval = form.category.value;
+    if (dropdownval == 1)
+    {
+    form.innerHTML=txt_Book;
+    }
+    else if (dropdownval == 2) {
+    form.innerHTML=txt_Movie;
+    }
+    else {
+    form.innerHTML=txt_Game;
+    }
+  }
+</script>
+<div class="search">
+  <h1>Add entity to your shelf</h1>
+
+  <form id="addform" name="addform" action="/additem">
+    Search category: <select name="category" id="category" onchange="formreload(this.form)">
+      <option value="1" selected="selected">Book</option>
+      <option value="2">Movie</option>
+      <option value="3">Game</option>
+    </select>
+    <br/><br/>
+    <select name="rating" id="rating">
+      <option value="1">1</option>
+      <option value="2">2</option>
+      <option value="3">3</option>
+      <option value="4">4</option>
+      <option value="5">5</option>
+    </select>
+    <br/><br/>
+    Author: <input type="text" name="author" id="author"/><br/><br/>
+    Title: <input type="text" name="title" id="title"/><br/><br/>
+    <input type="submit" value="add book" name="addbook" id="addbook"/><br/>
+  </form>
+</div>
+{% endblock %}
