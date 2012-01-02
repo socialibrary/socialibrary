@@ -2,16 +2,27 @@
 
 {% block title %}Welcome{% endblock %}
 {% block body %}
-<div class="welcome">
-  <h1>Welcome to Social Library</h1>
-
-What use is an old book, game or movie? Lend it through our app and get to meet new people who read, play and watch the same things you do. 
-    
-
-  
-</div>
-<a href="/search"><button class="btn info">Info</button></a>
-<a href="/add"><button class="btn info">Info2</button></a>
-
+     <div class="row">
+        <div class="span10">
+            <img class="promo" alt="This is where images will come" src="/splash.jpg">
+        </div>
+        <div class="span3">
+          <p>   What use is an old book, game or movie? Lend it through our app and get to meet new people who read the same books, play the same games and watch the same movies as you. 
+         </p>
+        </br>
+        </br>  
+	</div>
+     </div>
+     <div class="row">
+       <div class="span3 offset2">
+	 <a href="/add"><button class="btn info">Add to Shelf</button></a>
+         <!-- <button class="btn primary" size="30">Add to Shelf</button> -->
+       </div>
+       
+       <div class="span3 offset4">
+	 <a href="/search"><button class="btn info">Search Shelves</button></a>
+         <!-- <button class="btn primary" size="30">Search Shelves</button> -->
+       </div>
+    </div>
 
 {% endblock %}
