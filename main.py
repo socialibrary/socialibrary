@@ -113,21 +113,31 @@ class Book(db.Model):
     title = db.StringProperty(required=True)
     author = db.StringProperty(required=True)
     rating = db.IntegerProperty()
+    usercount = db.IntegerProperty()
+    createdby = db.StringProperty()
+    lastupdated = db.DateTimeProperty()
 
 class Game(db.Model):
     title = db.StringProperty(required=True)
     platform = db.StringProperty()
     pageurl = db.StringProperty()
     rating = db.IntegerProperty()
+    usercount = db.IntegerProperty()
+    createdby = db.StringProperty()
+    lastupdated = db.DateTimeProperty()
 
 class Movie(db.Model):
     title = db.StringProperty(required=True)
     actors = db.StringProperty()
     pageurl = db.StringProperty()
     rating = db.IntegerProperty()
+    usercount = db.IntegerProperty()
+    createdby = db.StringProperty()
+    lastupdated = db.DateTimeProperty()
 
 class Fact(db.Model):
-    userID=db.IntegerProperty()
+    userID=db.StringProperty()
+    userName=db.StringProperty()
     category=db.IntegerProperty()
     itemID=db.IntegerProperty()
 
@@ -140,7 +150,6 @@ class FacebookApiError(Exception):
 
     def __str__(self):
         return self.__class__.__name__ + ': ' + json.dumps(self.result)
-
 
 class Facebook(object):
     """Wraps the Facebook specific logic"""
@@ -380,12 +389,19 @@ class SearchItemHandler(BaseHandler):
     def get(self):
         if self.user:
             """ web response to search query """
-            category = self.request.get("category")
+            category = int(self.request.get("category"))
             if category == 3:
                 searchtext = self.request.get("title")
-                query = Game.gql("WHERE title = '%s'", searchtext)
-                game = query.fetch(1)
+                query = Game.gql("WHERE title = :1", searchtext)
+                tmp = query.fetch(1)
+                for x in tmp:
+                    game=x
                 query = Fact.gql("WHERE itemID = :1 AND category = :2", game.key().id(), 3)
+                template_values = {'titletext' : game.title, 'users' : query}
+                self.response.out.write(template.render(
+                        os.path.join(
+                            os.path.dirname(__file__), 'templates', 'searcheditem.html'),
+                        template_values))
         else:
             self.render(u'welcome')
 
@@ -398,11 +414,72 @@ class SearchHandler(BaseHandler):
         else:
             self.render(u'welcome')
 
+class AddHandler(BaseHandler):
+    """ Search action for game, action or book """
+    def get(self):
+        if self.user:
+            """ web response to search query """
+            self.render(u'addentity')
+        else:
+            self.render(u'welcome')
+
+class AddItemHandler(BaseHandler):
+    """ Search action for game, action or book """
+    def get(self):
+        if self.user:
+            """ web response to search query """
+            category = int(self.request.get("category"))
+            # template_values = {'titletext' : category}
+            # self.response.out.write(template.render(
+            # os.path.join(
+            #     os.path.dirname(__file__), 'templates', 'addeditem.html'),
+            # template_values))
+
+            if category == 1:
+                author=self.request.get("author")
+                title=self.request.get("title")
+                rating=self.request.get("rating")
+                lastupdated=datetime.datetime.now()
+                createdby=self.user.name
+                bk = Book(author=author, title=title, usercount=1, rating=rating, lastupdated=lastupdated, createdby=createdby)
+                bk.put()
+                fact=Fact(userID=self.user.user_id, userName=self.user.name, category=category, itemID=bk.id)
+                fact.put()
+            elif category == 2:
+                actor=self.request.get("actor")
+                title=self.request.get("title")
+                genre=self.request.get("genre")
+                rating=self.request.get("rating")
+                lastupdated=datetime.datetime.now()
+                createdby=self.user.name
+                movie=Movie(actor=actor, title=title, genre=genre, usercount=1, rating=rating, lastupdated=lastupdated, createdby=createdby)
+                movie.put()
+                fact=Fact(userID=self.user.user_id, userName=self.user.name, category=category, itemID=movie.id)
+                fact.put()
+            elif category == 3:
+                title=self.request.get("title")
+                rating=int(self.request.get("rating"))
+                createdby=self.user.name
+                lastupdated=datetime.datetime.now()
+                gam=Game(title=title, rating=rating, usercount=1, createdby=createdby, lastupdated=lastupdated)
+                gam.put()
+                fact=Fact(userID=self.user.user_id, userName=self.user.name, category=category, itemID=gam.key().id())
+                fact.put()
+                template_values = {'titletext': gam.key().id()}
+                self.response.out.write(template.render(
+                        os.path.join(
+                            os.path.dirname(__file__), 'templates', 'addeditem.html'),
+                        template_values))
+        else:
+            self.render(u'welcome')
+
 def main():
     routes = [
         (r'/', WelcomeHandler),
         (r'/search', SearchHandler),
         (r'/searchitem', SearchItemHandler),
+        (r'/add', AddHandler),
+        (r'/additem', AddItemHandler),
     ]
     application = webapp.WSGIApplication(routes,
         debug=os.environ.get('SERVER_SOFTWARE', '').startswith('Dev'))
