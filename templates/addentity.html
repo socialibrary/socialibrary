@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Search socialibrary{% endblock %}
+{% block title %}Add item to socialibrary{% endblock %}
 {% block body %}
 <script type="text/javascript">
   var txt_book =  "Search category: <select name='category' id='category' onchange='formreload(this.form)'> \
@@ -20,7 +20,7 @@
     Author: <input type='text' name='author' id='author'\/> <br\/> <br\/> \
     Title: <input type='text' name='title' id='title'\/> <br\/> <br\/> \
  \
-    <input type='submit' value='add book' name='addbook' id='addbook'\/> \
+    <button type='button' name='addbook' id='addbook' onclick='sendrequest(this.form)'> add book <\/button> \
     ";
 
     var txt_Movie = "Search category: <select name='category' id='category' onchange='formreload(this.form)'> \
@@ -41,7 +41,7 @@
     Title: <input type='text' name='title' id='title'\/> <br\/> <br\/> \
     Genre: <input type='text' name='genre' id='genre'\/> <br\/> <br\/> \
  \
-    <input type='submit' value='add movie' name='addmovie' id='addmovie'\/> \
+    <button type='button' name='addmovie' id='addmovie' onclick='sendrequest(this.form)'> add movie <\/button> \
     ";
 
   var txt_Game = "Search category: <select name='category' id='category' onchange='formreload(this.form)'> \
@@ -60,8 +60,12 @@
  \
     Title: <input type='text' name='title' id='title'\/> <br\/> <br\/> \
  \
-    <input type='submit' value='add game' name='addgame' id='addgame'\/> \
+    <button type='button' name='addgame' id='addgame' onclick='sendrequest(this.form)'> add game <\/button> \
     ";
+
+  function clearmsg() {
+    document.getElementById("message").innerHTML="";
+  }
 
   function formreload(form)
   {
@@ -76,12 +80,61 @@
     else {
     form.innerHTML=txt_Game;
     }
+
+    clearmsg();
+  }
+
+  function sendrequest(form) {
+    var xmlhttp;
+    if (window.XMLHttpRequest)
+    {// code for IE7+, Firefox, Chrome, Opera, Safari
+      xmlhttp=new XMLHttpRequest();
+    }
+    else
+    {// code for IE6, IE5
+      xmlhttp=new ActiveXObject("Microsoft.XMLHTTP");
+    }
+
+    xmlhttp.onreadystatechange=function()
+    {
+      if (xmlhttp.readyState==4 && xmlhttp.status==200)
+      {
+        document.getElementById("message").innerHTML=xmlhttp.responseText;
+	if (form.category.value == 1) {
+	  form.innerHTML=txt_Book;
+	}
+	else if (form.category.value == 2) {
+	  form.innerHTML=txt_Movie;
+	}
+	else if (form.category.value == 3) {
+	  form.innerHTML=txt_Game;
+	}
+      }
+    }
+
+    var getparams = "";
+    if (form.category.value == 1) {
+      getparams += "category=" + form.category.value + "&rating=" + form.rating.value;
+      getparams += "&author=" + form.author.value + "&title=" + form.title.value;
+    }
+    else if (form.category.value == 2) {
+      getparams += "category=" + form.category.value + "&rating=" + form.rating.value;
+      getparams += "&actor=" + form.actor.value + "&title=" + form.title.value;
+      getparams += "&genre=" + form.genre.value;
+    }
+    else if (form.category.value == 3) {
+      getparams += "category=" + form.category.value + "&rating=" + form.rating.value;
+      getparams += "&title=" + form.title.value;
+    }
+
+    xmlhttp.open("GET", "/additem?"+getparams, true);
+    xmlhttp.send();
   }
 </script>
 <div class="search">
   <h1>Add entity to your shelf</h1>
 
-  <form id="addform" name="addform" action="/additem">
+  <form id="addform" name="addform">
     Search category: <select name="category" id="category" onchange="formreload(this.form)">
       <option value="1" selected="selected">Book</option>
       <option value="2">Movie</option>
@@ -98,7 +151,9 @@
     <br/><br/>
     Author: <input type="text" name="author" id="author"/><br/><br/>
     Title: <input type="text" name="title" id="title"/><br/><br/>
-    <input type="submit" value="add book" name="addbook" id="addbook"/><br/>
+    <button type="button" name="addbook" id="addbook" onclick="sendrequest(this.form)"> add book </button> <br/>
   </form>
+  <div id="message" name="message">
+  </div>
 </div>
 {% endblock %}

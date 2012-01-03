@@ -12,7 +12,7 @@
     Author: <input type='text' name='author' id='author'\/> <br\/> \
     Title: <input type='text' name='title' id='title'\/> <br\/> \
  \
-    <input type='submit' name='search' id='search'\/> <br\/> \
+    <button type='button' name='search' id='search' onclick='sendrequest(this.form)'> search <\/button> <br\/> <br\/> \
   ";
   var txt_Movie = "Search category: <select name='category' id='category' onchange='formreload(this.form)'> \
       <option value='1'>Book<\/option> \
@@ -24,7 +24,7 @@
     Title: <input type='text' name='title' id='title'\/> <br\/> <br\/> \
     Genre: <input type='text' name='genre' id='genre'\/> <br\/> <br\/> \
  \
-    <input type='submit' name='search' id='search'\/> <br\/> \
+    <button type='button' name='search' id='search' onclick='sendrequest(this.form)'> search <\/button> <br\/> <br\/> \
   ";
 
   var txt_Game = "Search category: <select name='category' id='category' onchange='formreload(this.form)'> \
@@ -35,22 +35,73 @@
  \
     Title: <input type='text' name='title' id='title'\/> <br\/> <br\/> \
  \
-    <input type='submit' name='search' id='search'\/> <br\/> <br\/> \
+    <button type='button' name='search' id='search' onclick='sendrequest(this.form)'> search <\/button> <br\/> <br\/> \
   ";
+
+  function clearmsg() {
+    document.getElementById("message").innerHTML="";
+  }
 
   function formreload(form)
   {
     var dropdownval = form.category.value;
     if (dropdownval == 1)
     {
-    form.innerHTML=txt_Book;
+      form.innerHTML=txt_Book;
     }
     else if (dropdownval == 2) {
-    form.innerHTML=txt_Movie;
+      form.innerHTML=txt_Movie;
     }
     else {
-    form.innerHTML=txt_Game;
+      form.innerHTML=txt_Game;
     }
+  }
+
+  function sendrequest(form) {
+    var xmlhttp;
+    if (window.XMLHttpRequest)
+    {// code for IE7+, Firefox, Chrome, Opera, Safari
+      xmlhttp=new XMLHttpRequest();
+    }
+    else
+    {// code for IE6, IE5
+      xmlhttp=new ActiveXObject("Microsoft.XMLHTTP");
+    }
+
+    xmlhttp.onreadystatechange=function()
+    {
+      if (xmlhttp.readyState==4 && xmlhttp.status==200)
+      {
+        document.getElementById("message").innerHTML=xmlhttp.responseText;
+        if (form.category.value == 1) {
+          form.innerHTML=txt_Book;
+        }
+        else if (form.category.value == 2) {
+          form.innerHTML=txt_Movie;
+        }
+        else if (form.category.value == 3) {
+          form.innerHTML=txt_Game;
+        }
+      }
+    }
+
+    var getparams = "";
+    if (form.category.value == 1) {
+      getparams += "category=" + form.category.value;
+      getparams += "&author=" + form.author.value + "&title=" + form.title.value;
+    }
+    else if (form.category.value == 2) {
+      getparams += "category=" + form.category.value;
+      getparams += "&actor=" + form.actor.value + "&title=" + form.title.value;
+      getparams += "&genre=" + form.genre.value;
+    }
+    else if (form.category.value == 3) {
+      getparams += "category=" + form.category.value;
+      getparams += "&title=" + form.title.value;
+    }
+
+    xmlhttp.open("GET", "/searchitem?"+getparams, true);
+    xmlhttp.send();
   }
 </script>
 <div class="search">
@@ -66,7 +117,8 @@
     Author: <input type="text" name="author" id="author"/><br/><br/>
     Title: <input type="text" name="title" id="title"/><br/><br/>
     
-    <input type="submit" name="search" id="search"/><br/>
+    <button type="button" name="search" id="search" onclick="sendrequest(this.form)"> search </button> <br/>
   </form>
+  <div id="message" name="message" />
 </div>
 {% endblock %}

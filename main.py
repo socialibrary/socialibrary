@@ -438,7 +438,7 @@ class AddItemHandler(BaseHandler):
             if category == 1:
                 author=self.request.get("author")
                 title=self.request.get("title")
-                rating=self.request.get("rating")
+                rating=int(self.request.get("rating"))
                 lastupdated=datetime.datetime.now()
                 createdby=self.user.name
                 bk = Book(author=author, title=title, usercount=1, rating=rating, lastupdated=lastupdated, createdby=createdby)
@@ -449,7 +449,7 @@ class AddItemHandler(BaseHandler):
                 actor=self.request.get("actor")
                 title=self.request.get("title")
                 genre=self.request.get("genre")
-                rating=self.request.get("rating")
+                rating=int(self.request.get("rating"))
                 lastupdated=datetime.datetime.now()
                 createdby=self.user.name
                 movie=Movie(actor=actor, title=title, genre=genre, usercount=1, rating=rating, lastupdated=lastupdated, createdby=createdby)
