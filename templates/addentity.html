@@ -3,7 +3,8 @@
 {% block title %}Add item to socialibrary{% endblock %}
 {% block body %}
 <script type="text/javascript">
-  var txt_book =  "Search category: <select name='category' id='category' onchange='formreload(this.form)'> \
+   
+  var txt_Book =  "Search category: <select name='category' id='category' onchange='formreload(this.form)'> \
       <option value='1' selected='selected'>Book<\/option> \
       <option value='2'>Movie<\/option> \
       <option value='3'>Game<\/option> \
@@ -22,6 +23,7 @@
  \
     <button type='button' name='addbook' id='addbook' onclick='sendrequest(this.form)'> add book <\/button> \
     ";
+
 
     var txt_Movie = "Search category: <select name='category' id='category' onchange='formreload(this.form)'> \
       <option value='1'>Book<\/option> \
@@ -70,6 +72,7 @@
   function formreload(form)
   {
     var dropdownval = form.category.value;
+    
     if (dropdownval == 1)
     {
     form.innerHTML=txt_Book;
