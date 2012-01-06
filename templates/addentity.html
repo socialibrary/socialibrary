@@ -4,45 +4,84 @@
 {% block body %}
 <script type="text/javascript">
    
-  var txt_Book =  "Search category: <select name='category' id='category' onchange='formreload(this.form)'> \
+  var txt_Book =  "<div class='clearfix'> \
+    <label>Search category:<\/label> \
+     <div class='input'> \
+      <select name='category' id='category' onchange='formreload(this.form)'> \
       <option value='1' selected='selected'>Book<\/option> \
       <option value='2'>Movie<\/option> \
       <option value='3'>Game<\/option> \
-      <\/select> <br\/> <br\/> \
- \
-      Rating: <select name='rating' id='rating'> \
+      <\/select> \
+      <\/div> \
+      <\/div> \
+    <div class='clearfix'> \
+    <label>Rating: <\/label> \
+     <div class='input'> \
+      <select name='rating' id='rating'> \
       <option value='1'>1<\/option> \
       <option value='2'>2<\/option> \
       <option value='3'>3<\/option> \
       <option value='4'>4<\/option> \
       <option value='5'>5<\/option> \
       <\/select> <br\/> <br\/> \
- \
-    Author: <input type='text' name='author' id='author'\/> <br\/> <br\/> \
-    Title: <input type='text' name='title' id='title'\/> <br\/> <br\/> \
- \
-    <button type='button' name='addbook' id='addbook' onclick='sendrequest(this.form)'> add book <\/button> \
+      <\/div> \
+      <\/div> \
+    <div class='clearfix'> \
+    <label>Author: <\/label> \
+    <div class='input'> \
+    <input type='text' name='author' id='author'\/> <br\/> <br\/> \
+      <\/div> \
+      <\/div> \
+    <div class='clearfix'> \
+    <label>Title: <\/label> \
+    <div class='input'> \
+    <input type='text' name='title' id='title'\/> <br\/> <br\/> \
+    <\/div> \
+    <\/div> \
+    <div class='actions'> \
+    <button type='button' class='btn primary' name='addbook' id='addbook' onclick='sendrequest(this.form)'> add book <\/button> \
+    <\/div> \
     ";
 
 
-    var txt_Movie = "Search category: <select name='category' id='category' onchange='formreload(this.form)'> \
+    var txt_Movie = "<div class='clearfix'> \
+    <label>Search category:<\/label> \
+     <div class='input'> \
+     <select name='category' id='category' onchange='formreload(this.form)'> \
       <option value='1'>Book<\/option> \
       <option value='2' selected='selected'>Movie<\/option> \
       <option value='3'>Game<\/option> \
-      <\/select> <br\/> <br\/> \
- \
-      Rating: <select name='rating' id='rating'> \
+      <\/select>  \
+    <\/div> \
+      <\/div> \
+    <div class='clearfix'> \
+    <label>Rating: <\/label> \
+     <div class='input'> \
+     <select name='rating' id='rating'> \
       <option value='1'>1<\/option> \
       <option value='2'>2<\/option> \
       <option value='3'>3<\/option> \
       <option value='4'>4<\/option> \
       <option value='5'>5<\/option> \
-      <\/select> <br\/> <br\/> \
- \
-    Actor: <input type='text' name='actor' id='actor'\/> <br\/> <br\/> \
-    Title: <input type='text' name='title' id='title'\/> <br\/> <br\/> \
-\
-      Genre: <select name='Genre' id='Genre'> \
+      <\/select>  \
+    <\/div> \
+      <\/div> \
+    <div class='clearfix'> \
+    <label>Actor: <\/label> \
+     <div class='input'> \
+    <input type='text' name='actor' id='actor'\/>  \
+    <\/div> \
+      <\/div> \
+    <div class='clearfix'> \
+    <label>Title: <\/label> \
+     <div class='input'> \
+    <input type='text' name='title' id='title'\/>  \
+     <\/div> \
+     <\/div> \
+    <div class='clearfix'> \
+    <label>Genre: <\/label> \
+     <div class='input'> \
+      <select name='Genre' id='Genre'> \
       <option value='Action'>Action<\/option> \
       <option value='Adventure'>Adventure<\/option> \
       <option value='Animation'>Animation<\/option> \
@@ -59,44 +98,68 @@
       <option value='Thriller'>Thriller<\/option> \
       <option value='War'>War<\/option> \
       <option value='Western'>Western<\/option> \
-      <\/select> <br\/> <br\/> \
- \
-   \
-      Platform: <select name='Platform' id='Platform'> \
+      <\/select> \
+    <\/div> \
+     <\/div> \
+    <div class='clearfix'> \
+    <label>Platform: <\/label> \
+     <div class='input'> \
+      <select name='Platform' id='Platform'> \
       <option value='DVD'>DVD<\/option> \
       <option value='Bluray'>Bluray<\/option> \
       <option value='VCD'>VCD<\/option> \
       <option value='Other'>Other<\/option> \
-      <\/select> <br\/> <br\/> \
- \
-    <button type='button' name='addmovie' id='addmovie' onclick='sendrequest(this.form)'> add movie <\/button> \
+      <\/select> \
+    <\/div> \
+     <\/div> \
+     <div class='actions'> \
+    <button type='button' class='btn primary' name='addmovie' id='addmovie' onclick='sendrequest(this.form)'> add movie <\/button> \
+    <\/div> \
     ";
 
-  var txt_Game = "Search category: <select name='category' id='category' onchange='formreload(this.form)'> \
+  var txt_Game = "<div class='clearfix'> \
+    <label>Search category:<\/label> \
+     <div class='input'> \
+      <select name='category' id='category' onchange='formreload(this.form)'> \
       <option value='1'>Book<\/option> \
       <option value='2'>Movie<\/option> \
       <option value='3' selected='selected'>Game<\/option> \
-    <\/select> <br\/> <br\/> \
- \
-      Rating: <select name='rating' id='rating'> \
+    <\/select> \
+     <\/div> \
+     <\/div> \
+    <div class='clearfix'> \
+    <label>Rating: <\/label> \
+     <div class='input'> \
+     <select name='rating' id='rating'> \
       <option value='1'>1<\/option> \
       <option value='2'>2<\/option> \
       <option value='3'>3<\/option> \
       <option value='4'>4<\/option> \
       <option value='5'>5<\/option> \
-      <\/select> <br\/> <br\/> \
- \
-    Title: <input type='text' name='title' id='title'\/> <br\/> <br\/> \
-   \
-      Platform: <select name='Platform' id='Platform'> \
+      <\/select>  \
+      <\/div> \
+     <\/div> \
+    <div class='clearfix'> \
+    <label>Title: <\/label> \
+     <div class='input'> \
+    <input type='text' name='title' id='title'\/> \
+   <\/div> \
+     <\/div> \
+    <div class='clearfix'> \
+    <label>Platform: <\/label> \
+     <div class='input'> \
+      <select name='Platform' id='Platform'> \
       <option value='XBox'>XBox<\/option> \
       <option value='PlayStation'>PlayStation<\/option> \
       <option value='Nintendo'>Nintendo<\/option> \
       <option value='PC'>PC<\/option> \
       <option value='Other'>Other<\/option> \
-      <\/select> <br\/> <br\/> \
- \
-    <button type='button' name='addgame' id='addgame' onclick='sendrequest(this.form)'> add game <\/button> \
+      <\/select>  \
+     <\/div> \
+     <\/div> \
+     <div class='actions'> \
+    <button type='button' class='btn primary' name='addgame' id='addgame' onclick='sendrequest(this.form)'> add game <\/button> \
+    <\/div> \
     ";
 
   function clearmsg() {
@@ -172,23 +235,43 @@
   <h1>Add entity to your shelf</h1>
 
   <form id="addform" name="addform">
-    Search category: <select name="category" id="category" onchange="formreload(this.form)">
+    <div class="clearfix">
+    <label>Search category:</label> 
+    <div class="input"> 
+    <select name="category" id="category" onchange="formreload(this.form)">
       <option value="1" selected="selected">Book</option>
       <option value="2">Movie</option>
       <option value="3">Game</option>
     </select>
-    <br/><br/>
-    Rating: <select name="rating" id="rating">
+    </div>
+    </div>
+    <div class="clearfix">
+    <label>Rating:</label> 
+    <div class="input">
+    <select name="rating" id="rating">
       <option value="1">1</option>
       <option value="2">2</option>
       <option value="3">3</option>
       <option value="4">4</option>
       <option value="5">5</option>
     </select>
-    <br/><br/>
-    Author: <input type="text" name="author" id="author"/><br/><br/>
-    Title: <input type="text" name="title" id="title"/><br/><br/>
-    <button type="button" name="addbook" id="addbook" onclick="sendrequest(this.form)"> add book </button> <br/>
+    </div>
+    </div>
+    <div class="clearfix">
+    <label>Author:</label>
+    <div class="input">
+    <input type="text" name="author" id="author"/><br/><br/>
+    </div>
+    </div>
+    <div class="clearfix">
+    <label>Title: </label>
+    <div class="input">
+    <input type="text" name="title" id="title"/><br/><br/>
+    </div>
+    </div>
+    <div class="actions">
+    <button class="btn primary" type="button" name="addbook" id="addbook" onclick="sendrequest(this.form)"> add book </button> 
+    </div>
   </form>
   <div id="message" name="message">
   </div>

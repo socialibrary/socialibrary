@@ -16,7 +16,7 @@
     </div>
     <div class="row">
         <div class="span3 offset2">
-            <button class="btn primary" size="30" >Add to Shelf</button>
+            <button class="btn primary" size="30" onClick="add()" >Add to Shelf</button>
         </div>
         
         <div class="span3 offset4">
@@ -29,7 +29,10 @@
  {
      top.location.href = 'http://apps.facebook.com/socialibrary/search';      
     }
-    
+ function add()
+ {
+     top.location.href = 'http://apps.facebook.com/socialibrary/add';      
+    }    
  
   </script>
 {% endblock %}
