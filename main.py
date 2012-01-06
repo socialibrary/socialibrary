@@ -380,7 +380,10 @@ class WelcomeHandler(BaseHandler):
     """Show recent runs for the user and friends"""
     def get(self):
 	    if self.user:
-            	self.render(u'userstart')
+                if self.request.get("ref") == "bookmarks":
+                    self.render(u'bookmark_landing')
+                else:
+                    self.render(u'userstart')
             else:
             	self.render(u'welcome')
 
@@ -411,6 +414,9 @@ class SearchHandler(BaseHandler):
         if self.user:
             """ web response to search query """
             self.render(u'search')
+            #This is code to update the counter of the app. 
+            #url='https://api.facebook.com/method/dashboard.setCount?count=30&uid='+self.user.user_id+'&access_token='+self.user.access_token+'&format=json'
+            #urllib.urlopen(url)
         else:
             self.render(u'welcome')
 

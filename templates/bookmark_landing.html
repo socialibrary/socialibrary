@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block title %}Welcome{% endblock %}
+{% block body %}
+
+     <div class="row">
+        <div class="span10">
+            <img class="promo" alt="This is where images will come" src="/splash.jpg">
+        </div>
+        <div class="span3">
+          <p>   What use is an old book, game or movie? Lend it through our app and get to meet new people who read the same books, play the same games and watch the same movies as you. 
+         </p>
+        </br>
+        </br>
+       </div>
+    </div>
+    <div class="row">
+        <div class="span3 offset2">
+            <button class="btn primary" size="30" >Bookmarkage</button>
+        </div>
+    </div>
+<script type="text/javascript">
+ function search()
+ {
+     top.location.href = 'http://apps.facebook.com/socialibrary/search';      
+    }
+    
+ 
+  </script>
+{% endblock %}
