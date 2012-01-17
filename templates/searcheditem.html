@@ -2,6 +2,7 @@ Found item: <b> {{titletext}} </b>
 <table name="userlist" id="userlist">
 {% for user in users %}
 <tr>
+  <td> {{ user.itemName }} </td>
   <td> {{ user.userName }} </td>
 </tr>
 {% endfor %}

@@ -3,58 +3,8 @@
 {% block title %}Search socialibrary{% endblock %}
 {% block body %}
 <script type="text/javascript">
-  var txt_Book =  "Search category: <select name='category' id='category' onchange='formreload(this.form)'> \
-      <option value='1' selected='selected'>Book<\/option> \
-      <option value='2'>Movie<\/option> \
-      <option value='3'>Game<\/option> \
-    <\/select> <br\/> <br\/> \
- \
-    Author: <input type='text' name='author' id='author'\/> <br\/> \
-    Title: <input type='text' name='title' id='title'\/> <br\/> \
- \
-    <button type='button' name='search' id='search' onclick='sendrequest(this.form)'> search <\/button> <br\/> <br\/> \
-  ";
-  var txt_Movie = "Search category: <select name='category' id='category' onchange='formreload(this.form)'> \
-      <option value='1'>Book<\/option> \
-      <option value='2' selected='selected'>Movie<\/option> \
-      <option value='3'>Game<\/option> \
-    <\/select> <br\/> <br\/> \
- \
-    Actor: <input type='text' name='actor' id='actor'\/> <br\/> <br\/> \
-    Title: <input type='text' name='title' id='title'\/> <br\/> <br\/> \
-    Genre: <input type='text' name='genre' id='genre'\/> <br\/> <br\/> \
- \
-    <button type='button' name='search' id='search' onclick='sendrequest(this.form)'> search <\/button> <br\/> <br\/> \
-  ";
-
-  var txt_Game = "Search category: <select name='category' id='category' onchange='formreload(this.form)'> \
-      <option value='1'>Book<\/option> \
-      <option value='2'>Movie<\/option> \
-      <option value='3' selected='selected'>Game<\/option> \
-    <\/select> <br\/> <br\/>\
- \
-    Title: <input type='text' name='title' id='title'\/> <br\/> <br\/> \
- \
-    <button type='button' name='search' id='search' onclick='sendrequest(this.form)'> search <\/button> <br\/> <br\/> \
-  ";
-
   function clearmsg() {
     document.getElementById("message").innerHTML="";
-  }
-
-  function formreload(form)
-  {
-    var dropdownval = form.category.value;
-    if (dropdownval == 1)
-    {
-      form.innerHTML=txt_Book;
-    }
-    else if (dropdownval == 2) {
-      form.innerHTML=txt_Movie;
-    }
-    else {
-      form.innerHTML=txt_Game;
-    }
   }
 
   function sendrequest(form) {
@@ -73,32 +23,12 @@
       if (xmlhttp.readyState==4 && xmlhttp.status==200)
       {
         document.getElementById("message").innerHTML=xmlhttp.responseText;
-        if (form.category.value == 1) {
-          form.innerHTML=txt_Book;
-        }
-        else if (form.category.value == 2) {
-          form.innerHTML=txt_Movie;
-        }
-        else if (form.category.value == 3) {
-          form.innerHTML=txt_Game;
-        }
+        form.searchbox.value = "";
       }
     }
 
-    var getparams = "";
-    if (form.category.value == 1) {
-      getparams += "category=" + form.category.value;
-      getparams += "&author=" + form.author.value + "&title=" + form.title.value;
-    }
-    else if (form.category.value == 2) {
-      getparams += "category=" + form.category.value;
-      getparams += "&actor=" + form.actor.value + "&title=" + form.title.value;
-      getparams += "&genre=" + form.genre.value;
-    }
-    else if (form.category.value == 3) {
-      getparams += "category=" + form.category.value;
-      getparams += "&title=" + form.title.value;
-    }
+    var getparams = "category=" + form.category.value;
+    getparams += "&searchbox=" + form.searchbox.value;
 
     xmlhttp.open("GET", "/searchitem?"+getparams, true);
     xmlhttp.send();
@@ -108,15 +38,13 @@
   <h1>Search the socialibrary</h1>
 
   <form id="searchform" name="searchform" action="/searchitem">
-    Search category: <select name="category" id="category" onchange="formreload(this.form)">
+    Search category: <select name="category" id="category">
       <option value="1" selected="selected">Book</option>
       <option value="2">Movie</option>
       <option value="3">Game</option>
     </select>
     <br/><br/>
-    Author: <input type="text" name="author" id="author"/><br/><br/>
-    Title: <input type="text" name="title" id="title"/><br/><br/>
-    
+    Search: <input type="text" name="searchbox" id="searchbox"/><br/><br/>
     <button type="button" name="search" id="search" onclick="sendrequest(this.form)"> search </button> <br/>
   </form>
   <div id="message" name="message" />

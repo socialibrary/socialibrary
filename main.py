@@ -140,6 +140,8 @@ class Fact(db.Model):
     userName=db.StringProperty()
     category=db.IntegerProperty()
     itemID=db.IntegerProperty()
+    location=db.StringProperty()
+    itemName=db.StringProperty()
 
 class RunException(Exception):
     pass
@@ -389,18 +391,87 @@ class WelcomeHandler(BaseHandler):
 
 class SearchItemHandler(BaseHandler):
     """ Search action for game, action or book """
+    def getfacts(self, entityresultset, category, tmpcnt):
+        result = set()
+        cnt = tmpcnt
+        for entity in entityresultset:
+            if cnt >= 100:
+                break
+            query = Fact.gql("WHERE itemID = :1 AND category = :2 AND location=:3", entity.key().id(), category, self.user.locationname)
+            sameloc = query.fetch(100)
+            for tmpfact in sameloc:
+                if cnt >= 100:
+                    break
+                cnt=cnt+1
+                result.add(tmpfact)
+            if cnt >= 100:
+                break
+            query = Fact.gql("WHERE itemID = :1 AND category = :2 AND location != :3", entity.key().id(), category, self.user.locationname)
+            diffloc = query.fetch(100)
+            for tmpfact in diffloc:
+                if cnt > 100:
+                    break
+                cnt=cnt+1
+                result.add(tmpfact)
+        return result, cnt
+
     def get(self):
         if self.user:
             """ web response to search query """
+            searchtext = self.request.get("searchbox")
             category = int(self.request.get("category"))
+            result = set()
             if category == 3:
-                searchtext = self.request.get("title")
-                query = Game.gql("WHERE title = :1", searchtext)
-                tmp = query.fetch(1)
-                for x in tmp:
-                    game=x
-                query = Fact.gql("WHERE itemID = :1 AND category = :2", game.key().id(), 3)
-                template_values = {'titletext' : game.title, 'users' : query}
+                upper = searchtext + "z";
+                query = Game.gql("WHERE title >= :1 AND title <= :2 ORDER BY title ASC", searchtext, upper)
+                tmp = query.fetch(100)
+                cnt = 0
+                tmpres, tmpcnt = self.getfacts(tmp, category, cnt)
+                template_values = {'titletext': 'Game', 'users' : tmpres}
+                self.response.out.write(template.render(
+                        os.path.join(
+                            os.path.dirname(__file__), 'templates', 'searcheditem.html'),
+                        template_values))
+            elif category == 2:
+                upper = searchtext+"z"
+                query = Movie.gql("WHERE title >= :1 AND title <= :2 ORDER BY title", searchtext, upper)
+                tmp = query.fetch(100)
+                cnt = 0
+                tmpres, tmpcnt = self.getfacts(tmp, category, cnt)
+                result = result.union(tmpres)
+                cnt = tmpcnt
+                if cnt < 100:
+                    query = Movie.gql("WHERE genre = :1 ORDER BY genre", searchtext)
+                    tmp = query.fetch(100)
+                    tmpres, tmpcnt = self.getfacts(tmp, category, cnt)
+                    result = result.union(tmpres)
+                    cnt = tmpcnt
+                if cnt < 100:
+                    query = Movie.gql("WHERE actor >= :1 and actor <= :2 ORDER BY actor", searchtext, upper)
+                    tmp = query.fetch(100)
+                    tmpres, tmpcnt = self.getfacts(tmp, category, cnt)
+                    result = result.union(tmpres)
+                    cnt = tmpcnt
+                template_values = {'titletext' : 'Movies', 'users' : result}
+                self.response.out.write(template.render(
+                        os.path.join(
+                            os.path.dirname(__file__), 'templates', 'searcheditem.html'),
+                        template_values))
+            elif category == 1:
+                upper = searchtext + "z";
+                query = Book.gql("WHERE title >= :1 AND title <= :2 ORDER BY title", searchtext, upper)
+                tmp = query.fetch(100)
+                cnt = 0
+                tmpres, tmpcnt = self.getfacts(tmp, category, cnt)
+                result = result.union(tmpres)
+                cnt = tmpcnt
+                if cnt < 100:
+                    query = Book.gql("WHERE author >= :1 and author <= :2 ORDER BY author", searchtext, upper)
+                    tmp = query.fetch(100)
+                    tmpres, tmpcnt = self.getfacts(tmp, category, cnt)
+                    result = result.union(tmpres)
+                    cnt = tmpcnt
+                template_values = {'titletext' : 'Book', 'users' : result}
                 self.response.out.write(template.render(
                         os.path.join(
                             os.path.dirname(__file__), 'templates', 'searcheditem.html'),
@@ -449,8 +520,13 @@ class AddItemHandler(BaseHandler):
                 createdby=self.user.name
                 bk = Book(author=author, title=title, usercount=1, rating=rating, lastupdated=lastupdated, createdby=createdby)
                 bk.put()
-                fact=Fact(userID=self.user.user_id, userName=self.user.name, category=category, itemID=bk.id)
+                fact=Fact(userID=self.user.user_id, userName=self.user.name, category=category, itemID=bk.key().id(), location=self.user.locationname, itemName=title)
                 fact.put()
+                template_values = {'titletext': bk.key().id()}
+                self.response.out.write(template.render(
+                        os.path.join(
+                            os.path.dirname(__file__), 'templates', 'addeditem.html'),
+                        template_values))
             elif category == 2:
                 actor=self.request.get("actor")
                 title=self.request.get("title")
@@ -460,8 +536,13 @@ class AddItemHandler(BaseHandler):
                 createdby=self.user.name
                 movie=Movie(actor=actor, title=title, genre=genre, usercount=1, rating=rating, lastupdated=lastupdated, createdby=createdby)
                 movie.put()
-                fact=Fact(userID=self.user.user_id, userName=self.user.name, category=category, itemID=movie.id)
+                fact=Fact(userID=self.user.user_id, userName=self.user.name, category=category, itemID=movie.key().id(), location=self.user.locationname, itemName=title)
                 fact.put()
+                template_values = {'titletext': movie.key().id()}
+                self.response.out.write(template.render(
+                        os.path.join(
+                            os.path.dirname(__file__), 'templates', 'addeditem.html'),
+                        template_values))
             elif category == 3:
                 title=self.request.get("title")
                 rating=int(self.request.get("rating"))
@@ -469,7 +550,7 @@ class AddItemHandler(BaseHandler):
                 lastupdated=datetime.datetime.now()
                 gam=Game(title=title, rating=rating, usercount=1, createdby=createdby, lastupdated=lastupdated)
                 gam.put()
-                fact=Fact(userID=self.user.user_id, userName=self.user.name, category=category, itemID=gam.key().id())
+                fact=Fact(userID=self.user.user_id, userName=self.user.name, category=category, itemID=gam.key().id(), location=self.user.locationname, itemName=title)
                 fact.put()
                 template_values = {'titletext': gam.key().id()}
                 self.response.out.write(template.render(
