@@ -382,10 +382,44 @@ class WelcomeHandler(BaseHandler):
     """Show recent runs for the user and friends"""
     def get(self):
 	    if self.user:
+        
+                ##TODO: Add a condition in templates for no books
+                """Getting list of Books
+                """
+                q = Fact.gql("WHERE category = 1 AND userID = :1",self.user.user_id)
+                book_list = q.fetch(10)
+                books= []
+                for book in book_list:
+                    book_item_id = book.itemID
+                    b = Book.get_by_id(book_item_id)
+                    books.append(b)
+                """Getting list of Movies
+                """
+                q = Fact.gql("WHERE category = 2 AND userID = :1",self.user.user_id)
+                movie_list = q.fetch(10)
+                movies= []
+                for movie in movie_list:
+                    movie_item_id = movie.itemID
+                    m = Movie.get_by_id(movie_item_id)
+                    movies.append(m)
+                    
+                """Getting list of Games
+                """
+                q = Fact.gql("WHERE category = 3 AND userID = :1",self.user.user_id)
+                game_list = q.fetch(10)
+                games= []
+                for game in game_list:
+                    game_item_id = game.itemID
+                    g = Game.get_by_id(game_item_id)
+                    games.append(g)
+                    
+                # print books
+                # print movies
+                # print games
                 if self.request.get("ref") == "bookmarks":
                     self.render(u'bookmark_landing')
                 else:
-                    self.render(u'userstart')
+                    self.render(u'userstart',books=books,movies=movies,games=games)
             else:
             	self.render(u'welcome')
 
@@ -459,6 +493,7 @@ class SearchItemHandler(BaseHandler):
                         template_values))
             elif category == 1:
                 upper = searchtext + "z";
+                #import pdb; pdb.set_trace()
                 query = Book.gql("WHERE title >= :1 AND title <= :2 ORDER BY title", searchtext, upper)
                 tmp = query.fetch(100)
                 cnt = 0
@@ -517,7 +552,7 @@ class AddItemHandler(BaseHandler):
                 title=self.request.get("title")
                 rating=int(self.request.get("rating"))
                 lastupdated=datetime.datetime.now()
-                createdby=self.user.name
+                createdby=self.user.user_id
                 bk = Book(author=author, title=title, usercount=1, rating=rating, lastupdated=lastupdated, createdby=createdby)
                 bk.put()
                 fact=Fact(userID=self.user.user_id, userName=self.user.name, category=category, itemID=bk.key().id(), location=self.user.locationname, itemName=title)
@@ -533,7 +568,7 @@ class AddItemHandler(BaseHandler):
                 genre=self.request.get("genre")
                 rating=int(self.request.get("rating"))
                 lastupdated=datetime.datetime.now()
-                createdby=self.user.name
+                createdby=self.user.user_id
                 movie=Movie(actor=actor, title=title, genre=genre, usercount=1, rating=rating, lastupdated=lastupdated, createdby=createdby)
                 movie.put()
                 fact=Fact(userID=self.user.user_id, userName=self.user.name, category=category, itemID=movie.key().id(), location=self.user.locationname, itemName=title)
@@ -546,7 +581,7 @@ class AddItemHandler(BaseHandler):
             elif category == 3:
                 title=self.request.get("title")
                 rating=int(self.request.get("rating"))
-                createdby=self.user.name
+                createdby=self.user.user_id
                 lastupdated=datetime.datetime.now()
                 gam=Game(title=title, rating=rating, usercount=1, createdby=createdby, lastupdated=lastupdated)
                 gam.put()
