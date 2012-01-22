@@ -2,7 +2,7 @@
 
 {% block title %}Welcome{% endblock %}
 {% block body %}
-    
+    <script src="js/bootstrap-tabs.js"></script>
      <div class="row">
         <div class="span10">
             <img class="promo" alt="This is where images will come" src="/splash.jpg">
@@ -24,25 +24,42 @@
         </div>
 
     </div>
-    <p>
+    <h3>Shelf</h3>
+    <ul class="tabs" data-tabs="tabs">
+    
+    <li class="active"><a href="#books" data-toggle="tab">Books</a></li>
+    <li><a href="#movies" data-toggle="tab">Movies</a></li>
+    <li><a href="#games" data-toggle="tab">Games</a></li>
+    </ul>
+    <div class="tab-content">
+    <div class="tab-pane active" id="books">
     <h4>Here is the list of books:</h4>
     <ul>
     {% for book in books %}
     <li>{{book.title}}</li>
     {% endfor %}
     </ul>
+    </div>
+    <div class="tab-pane" id="movies">
     <h4>Here is the list of movies:</h4>
     <ul>
     {% for movie in movies %}
     <li>{{movie.title}}</li>
     {% endfor %}
     </ul>
+    </div>
+    <div class="tab-pane" id="games">
     <h4>Here is the list of games:</h4>
     <ul>
     {% for game in games %}
     <li>{{game.title}}</li>
     {% endfor %}
     </ul>
+    </div>
+    </div>
+<script>
+
+</script>   
 <script type="text/javascript">
  function search()
  {
