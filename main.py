@@ -535,6 +535,13 @@ class AddHandler(BaseHandler):
         else:
             self.render(u'welcome')
 
+class AutoCompleteHandler(BaseHandler):
+
+    """ Search action for game, action or book """
+    def get(self):            
+            #import pdb;pdb.set_trace()
+            self.response.out.write(json.dumps(["ActionScript0000", "AppleScript", "Asp", "BASIC"]))
+            
 class AddItemHandler(BaseHandler):
     """ Search action for game, action or book """
     def get(self):
@@ -602,6 +609,7 @@ def main():
         (r'/searchitem', SearchItemHandler),
         (r'/add', AddHandler),
         (r'/additem', AddItemHandler),
+        (r'/autocomplete', AutoCompleteHandler),
     ]
     application = webapp.WSGIApplication(routes,
         debug=os.environ.get('SERVER_SOFTWARE', '').startswith('Dev'))

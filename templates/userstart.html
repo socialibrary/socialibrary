@@ -2,10 +2,10 @@
 
 {% block title %}Welcome{% endblock %}
 {% block body %}
-    <script src="js/bootstrap-tabs.js"></script>
+   
      <div class="row">
         <div class="span10">
-            <img class="promo" alt="This is where images will come" src="/splash.jpg">
+            <img class="promo" alt="This is where images will come" src="/splash.gif">
         </div>
         <div class="span3">
           <p>   What use is an old book, game or movie? Lend it through our app and get to meet new people who read the same books, play the same games and watch the same movies as you. 
@@ -14,7 +14,7 @@
         </br>
        </div>
     </div>
-    <div class="row">
+    <!--div class="row">
         <div class="span3 offset2">
             <button class="btn primary" size="30" onClick="add()" >Add to Shelf</button>
         </div>
@@ -23,16 +23,17 @@
             <button class="btn primary" size="30" onClick="search()" >Search Shelves</button>
         </div>
 
-    </div>
-    <h3>Shelf</h3>
-    <ul class="tabs" data-tabs="tabs">
-    
-    <li class="active"><a href="#books" data-toggle="tab">Books</a></li>
-    <li><a href="#movies" data-toggle="tab">Movies</a></li>
-    <li><a href="#games" data-toggle="tab">Games</a></li>
+    </div-->
+    <h2>&nbsp;Shelf</h2>
+    <div class="row">
+    <div class="span10">
+    <div id="tabs"  class="ui-tabs ui-widget ui-widget-content ui-corner-all">
+    <ul class="ui-tabs-nav ui-helper-reset ui-helper-clearfix ui-widget-header ui-corner-all">
+    <li class="ui-state-default ui-corner-top ui-tabs-selected ui-state-active" ><a href="#tabs-1">Books</a></li>
+    <li class="ui-state-default ui-corner-top"><a href="#tabs-2">Movies</a></li>
+    <li class="ui-state-default ui-corner-top"><a href="#tabs-3">Games</a></li>
     </ul>
-    <div class="tab-content">
-    <div class="tab-pane active" id="books">
+    <div id="tabs-1" class="ui-tabs-panel ui-widget-content ui-corner-bottom">
     <h4>Here is the list of books:</h4>
     <ul>
     {% for book in books %}
@@ -40,7 +41,7 @@
     {% endfor %}
     </ul>
     </div>
-    <div class="tab-pane" id="movies">
+    <div id="tabs-2" class="ui-tabs-panel ui-widget-content ui-corner-bottom ui-tabs-hide">
     <h4>Here is the list of movies:</h4>
     <ul>
     {% for movie in movies %}
@@ -48,7 +49,7 @@
     {% endfor %}
     </ul>
     </div>
-    <div class="tab-pane" id="games">
+    <div id="tabs-3" class="ui-tabs-panel ui-widget-content ui-corner-bottom ui-tabs-hide">
     <h4>Here is the list of games:</h4>
     <ul>
     {% for game in games %}
@@ -57,10 +58,16 @@
     </ul>
     </div>
     </div>
-<script>
+    </div>
+    </div>
 
-</script>   
+
+
+<script type="text/javascript" src="js/jquery-1.6.2.min.js"></script>
+<script type="text/javascript" src="js/jquery-ui-1.8.16.custom.min.js"></script>	
+
 <script type="text/javascript">
+$('#tabs').tabs();
  function search()
  {
      top.location.href = 'http://apps.facebook.com/socialibrary/search';      
@@ -70,5 +77,14 @@
      top.location.href = 'http://apps.facebook.com/socialibrary/add';      
     }    
  
-  </script>
+ </script>
+
+
 {% endblock %}
+
+
+
+
+
+
+
