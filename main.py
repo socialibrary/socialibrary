@@ -609,7 +609,7 @@ def main():
         (r'/searchitem', SearchItemHandler),
         (r'/add', AddHandler),
         (r'/additem', AddItemHandler),
-        (r'/autocomplete', AutoCompleteHandler),
+        (r'/search_ac', AutoCompleteHandler),
     ]
     application = webapp.WSGIApplication(routes,
         debug=os.environ.get('SERVER_SOFTWARE', '').startswith('Dev'))

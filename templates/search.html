@@ -35,18 +35,44 @@
   }
 </script>
 <div class="search">
-  <h1>Search the socialibrary</h1>
+  <h2>Search the socialibrary</h2>
 
-  <form id="searchform" name="searchform" action="/searchitem">
-    Search category: <select name="category" id="category">
-      <option value="1" selected="selected">Book</option>
-      <option value="2">Movie</option>
-      <option value="3">Game</option>
-    </select>
-    <br/><br/>
-    Search: <input type="text" name="searchbox" id="searchbox"/><br/><br/>
-    <button type="button" name="search" id="search" onclick="sendrequest(this.form)"> search </button> <br/>
-  </form>
+  <form id="searchform" name="searchform" action="/searchitem" style="margin-top: 1em;">
+        <div id="radioset" >
+          <input type="radio" id="radio1" name="radio_group" checked="checked" value="1" /><label for="radio1">Books</label>
+          <input type="radio" id="radio2" name="radio_group" value="2" /><label for="radio2">Movies</label>
+          <input type="radio" id="radio3" name="radio_group" value="3" /><label for="radio3">Games</label>
+        </div>
+        </br>
+        <div class="ui-widget">
+      <label for="tags">Search: </label>
+      <input id="tags" />
+    </div>
+ </form>
+  
+
   <div id="message" name="message" />
 </div>
+
+<script type="text/javascript" src="js/jquery-1.6.2.min.js"></script>
+<script type="text/javascript" src="js/jquery-ui-1.8.16.custom.min.js"></script>	
+
+<script type="text/javascript">
+$('#radioset').buttonset();
+    $("#format").buttonset();
+$("#tags").autocomplete({
+  source: function(request, response) {
+ 
+  $.ajax({url:"http://localhost:8080/search_ac",
+          data: { search_term: request.term, category: $('input[name=radio_group]:checked').val() },
+          dataType: "json",
+          method: "get",
+            success:  function(data){
+                      response(data);
+                  },
+          });
+  
+  }
+  });
+ </script>
 {% endblock %}
