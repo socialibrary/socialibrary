@@ -25,7 +25,7 @@ use_library('django', '1.2')
 from django.template.defaultfilters import register
 from django.utils import simplejson as json
 from functools import wraps
-from google.appengine.api import urlfetch, taskqueue
+from google.appengine.api import urlfetch, taskqueue, rdbms
 from google.appengine.ext import db, webapp
 from google.appengine.ext.webapp import util, template
 from google.appengine.runtime import DeadlineExceededError
@@ -46,6 +46,8 @@ from google.appengine.api import urlfetch
 
 import locale
 import urllib2
+
+_INSTANCE_NAME = '<YOUR_INSTANCE_NAME>'
 
 def htmlescape(text):
     """Escape text for use as HTML"""
@@ -547,9 +549,11 @@ class AutoCompleteHandler(BaseHandler):
                 query = Game.gql("WHERE title >= :1 AND title <= :2 ORDER BY title", searchtext, upper)
                 games = query.fetch(100)
                 list = []
+                unique_game_titles = {}
                 for game in games:
-                    #print book.title
-                    list.append({"label":game.title, "value":game.title, "key":game.key().id()})
+                    if game.title not in unique_game_titles:
+                        unique_game_titles[game.title] = True
+                        list.append({"label":game.title, "value":game.title, "key":game.key().id()})
                 
                 self.response.out.write(json.dumps(list))
                 
@@ -558,9 +562,11 @@ class AutoCompleteHandler(BaseHandler):
                 query = Movie.gql("WHERE title >= :1 AND title <= :2 ORDER BY title", searchtext, upper)
                 movies = query.fetch(100)
                 list = []
+                unique_movie_titles = {}
                 for movie in movies:
-                    #print book.title
-                    list.append({"label":movie.title, "value":movie.title, "key":movie.key().id()})
+                    if movie.title not in unique_movie_titles:
+                        unique_movie_titles[movie.title] = True
+                        list.append({"label":movie.title, "value":movie.title, "key":movie.key().id()})
                 
                 self.response.out.write(json.dumps(list))
                 
@@ -569,9 +575,11 @@ class AutoCompleteHandler(BaseHandler):
                 query = Book.gql("WHERE title >= :1 AND title <= :2 ORDER BY title", searchtext, upper)
                 books = query.fetch(100)
                 list = []
+                unique_book_titles = {}
                 for book in books:
-                    #print book.title
-                    list.append({"label":book.title, "value":book.title, "key":book.key().id()})
+                    if book.title not in unique_book_titles:
+                        unique_book_titles[book.title] = True
+                        list.append({"label":book.title, "value":book.title, "key":book.key().id()})
                 
                 self.response.out.write(json.dumps(list))
         else:
