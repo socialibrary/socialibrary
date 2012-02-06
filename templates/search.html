@@ -58,11 +58,11 @@
 <script type="text/javascript" src="js/jquery-ui-1.8.16.custom.min.js"></script>	
 
 <script type="text/javascript">
+
 $('#radioset').buttonset();
     $("#format").buttonset();
 $("#tags").autocomplete({
   source: function(request, response) {
- 
   $.ajax({url:"http://localhost:8080/search_ac",
           data: { search_term: request.term, category: $('input[name=radio_group]:checked').val() },
           dataType: "json",
@@ -70,9 +70,24 @@ $("#tags").autocomplete({
             success:  function(data){
                       response(data);
                   },
+          });},
+  minLength:3,
+  select:function(event,ui){
+  $.ajax({url:"http://localhost:8080/searchitem",
+          data: { searchbox: ui.item.label, category: $('input[name=radio_group]:checked').val() },
+          dataType: "text",
+          method: "get",
+          success:  function(data){
+                      
+                      document.getElementById("message").innerHTML=data;
+                  },
+          error: function(x,e){
+                console.error(e);
+            },  
           });
+  },
   
-  }
   });
+  
  </script>
 {% endblock %}

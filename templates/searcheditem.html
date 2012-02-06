@@ -1,9 +1,15 @@
-Found item: <b> {{titletext}} </b>
-<table name="userlist" id="userlist">
+<!--Found item: <b> {{titletext}} </b>-->
+<table name="userlist" id="userlist" class="zebra-striped">
+<thead>
+<th> Title</th>
+  <th> Owner </th>
+</thead>
+<tbody>
 {% for user in users %}
 <tr>
   <td> {{ user.itemName }} </td>
   <td> {{ user.userName }} </td>
 </tr>
 {% endfor %}
+</tbody>
 </table>

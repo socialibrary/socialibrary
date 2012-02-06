@@ -549,7 +549,7 @@ class AutoCompleteHandler(BaseHandler):
                 list = []
                 for game in games:
                     #print book.title
-                    list.append(game.title)
+                    list.append({"label":game.title, "value":game.title, "key":game.key().id()})
                 
                 self.response.out.write(json.dumps(list))
                 
@@ -560,7 +560,7 @@ class AutoCompleteHandler(BaseHandler):
                 list = []
                 for movie in movies:
                     #print book.title
-                    list.append(movie.title)
+                    list.append({"label":movie.title, "value":movie.title, "key":movie.key().id()})
                 
                 self.response.out.write(json.dumps(list))
                 
@@ -571,7 +571,7 @@ class AutoCompleteHandler(BaseHandler):
                 list = []
                 for book in books:
                     #print book.title
-                    list.append(book.title)
+                    list.append({"label":book.title, "value":book.title, "key":book.key().id()})
                 
                 self.response.out.write(json.dumps(list))
         else:
