@@ -536,11 +536,47 @@ class AddHandler(BaseHandler):
             self.render(u'welcome')
 
 class AutoCompleteHandler(BaseHandler):
-
-    """ Search action for game, action or book """
     def get(self):            
-            #import pdb;pdb.set_trace()
-            self.response.out.write(json.dumps(["ActionScript0000", "AppleScript", "Asp", "BASIC"]))
+        if self.user:
+            """ web response to search query """
+            searchtext = self.request.get("search_term")
+            category = int(self.request.get("category"))
+            result = set()
+            if category == 3:
+                upper = searchtext + "z";
+                query = Game.gql("WHERE title >= :1 AND title <= :2 ORDER BY title", searchtext, upper)
+                games = query.fetch(100)
+                list = []
+                for game in games:
+                    #print book.title
+                    list.append(game.title)
+                
+                self.response.out.write(json.dumps(list))
+                
+            elif category == 2:
+                upper = searchtext + "z";
+                query = Movie.gql("WHERE title >= :1 AND title <= :2 ORDER BY title", searchtext, upper)
+                movies = query.fetch(100)
+                list = []
+                for movie in movies:
+                    #print book.title
+                    list.append(movie.title)
+                
+                self.response.out.write(json.dumps(list))
+                
+            elif category == 1:
+                upper = searchtext + "z";
+                query = Book.gql("WHERE title >= :1 AND title <= :2 ORDER BY title", searchtext, upper)
+                books = query.fetch(100)
+                list = []
+                for book in books:
+                    #print book.title
+                    list.append(book.title)
+                
+                self.response.out.write(json.dumps(list))
+        else:
+            self.response.out.write(u'Login buddy')
+            #self.response.out.write(json.dumps(["ActionScript0000", "AppleScript", "Asp", "BASIC"]))
             
 class AddItemHandler(BaseHandler):
     """ Search action for game, action or book """
