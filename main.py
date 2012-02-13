@@ -47,7 +47,7 @@ from google.appengine.api import urlfetch
 import locale
 import urllib2
 
-_INSTANCE_NAME = '<YOUR_INSTANCE_NAME>'
+_INSTANCE_NAME = 'socialibrary-db:socialibrary'
 
 def htmlescape(text):
     """Escape text for use as HTML"""
@@ -98,7 +98,7 @@ class User(db.Model):
         self.name = me[u'name']
         self.email = me.get(u'email')
         self.picture = me[u'picture']
-        
+
         loc = me.get(u'location')
         logging.info(loc)
         if loc != None:
@@ -107,12 +107,13 @@ class User(db.Model):
         else:
 		self.locationid = "No place entered"
 	        self.locationname = "No place entered"
-                
+
         self.friends = [user[u'id'] for user in me[u'friends'][u'data']]
         return self.put()
 
 class Book(db.Model):
     title = db.StringProperty(required=True)
+    normalised_title = db.StringProperty(required=True)
     author = db.StringProperty(required=True)
     rating = db.IntegerProperty()
     usercount = db.IntegerProperty()
@@ -121,6 +122,7 @@ class Book(db.Model):
 
 class Game(db.Model):
     title = db.StringProperty(required=True)
+    normalised_title = db.StringProperty(required=True)
     platform = db.StringProperty()
     pageurl = db.StringProperty()
     rating = db.IntegerProperty()
@@ -130,6 +132,7 @@ class Game(db.Model):
 
 class Movie(db.Model):
     title = db.StringProperty(required=True)
+    normalised_title = db.StringProperty(required=True)
     actors = db.StringProperty()
     pageurl = db.StringProperty()
     rating = db.IntegerProperty()
@@ -293,7 +296,7 @@ class BaseHandler(webapp.RequestHandler):
         data[u'csrf_token'] = self.csrf_token
         data[u'canvas_name'] = conf.FACEBOOK_CANVAS_NAME
 
-        
+
         self.response.out.write(template.render(
             os.path.join(
                 os.path.dirname(__file__), 'templates', name + '.html'),
@@ -384,40 +387,43 @@ class WelcomeHandler(BaseHandler):
     """Show recent runs for the user and friends"""
     def get(self):
 	    if self.user:
-        
+                conn = rdbms.connect(instance=_INSTANCE_NAME, database='socialibrary')
+                cursor = conn.cursor()
                 ##TODO: Add a condition in templates for no books
                 """Getting list of Books
                 """
-                q = Fact.gql("WHERE category = 1 AND userID = :1",self.user.user_id)
-                book_list = q.fetch(10)
+
+                cursor.execute('SELECT * FROM owner_book_mapping WHERE user_id = %s',(self.user.user_id))
+                book_rows = cursor.fetchall()
                 books= []
-                for book in book_list:
-                    book_item_id = book.itemID
-                    b = Book.get_by_id(book_item_id)
-                    books.append(b)
+                for book in book_rows:
+                    book_item_id = book[1]
+                    cursor.execute('SELECT title FROM books WHERE entryID = %s', book_item_id)
+                    b = cursor.fetchone()
+                    books.append(b[0])
                 """Getting list of Movies
                 """
-                q = Fact.gql("WHERE category = 2 AND userID = :1",self.user.user_id)
-                movie_list = q.fetch(10)
-                movies= []
-                for movie in movie_list:
-                    movie_item_id = movie.itemID
-                    m = Movie.get_by_id(movie_item_id)
-                    movies.append(m)
-                    
+                cursor.execute('SELECT * FROM owner_movie_mapping WHERE user_id = %s',(self.user.user_id))
+                movie_rows = cursor.fetchall()
+                movies = []
+                for movie in movie_rows:
+                    movie_item_id = movie[2]
+                    cursor.execute('SELECT title FROM movies WHERE entryID = %s', movie_item_id)
+                    m = cursor.fetchone()
+                    movies.append(m[0])
                 """Getting list of Games
                 """
-                q = Fact.gql("WHERE category = 3 AND userID = :1",self.user.user_id)
-                game_list = q.fetch(10)
-                games= []
-                for game in game_list:
-                    game_item_id = game.itemID
-                    g = Game.get_by_id(game_item_id)
-                    games.append(g)
-                    
-                # print books
-                # print movies
-                # print games
+                cursor.execute('SELECT * FROM owner_game_mapping WHERE user_id = %s',(self.user.user_id))
+                game_rows = cursor.fetchall()
+                games = []
+                for game in game_rows:
+                    game_item_id = game[2]
+                    cursor.execute('SELECT title FROM games WHERE entryID = %s', game_item_id)
+                    g = cursor.fetchone()
+                    games.append(g[0])
+
+                conn.commit()
+                conn.close()
                 if self.request.get("ref") == "bookmarks":
                     self.render(u'bookmark_landing')
                 else:
@@ -522,7 +528,7 @@ class SearchHandler(BaseHandler):
         if self.user:
             """ web response to search query """
             self.render(u'search')
-            #This is code to update the counter of the app. 
+            #This is code to update the counter of the app.
             #url='https://api.facebook.com/method/dashboard.setCount?count=30&uid='+self.user.user_id+'&access_token='+self.user.access_token+'&format=json'
             #urllib.urlopen(url)
         else:
@@ -538,15 +544,15 @@ class AddHandler(BaseHandler):
             self.render(u'welcome')
 
 class AutoCompleteHandler(BaseHandler):
-    def get(self):            
+    def get(self):
         if self.user:
             """ web response to search query """
             searchtext = self.request.get("search_term")
             category = int(self.request.get("category"))
             result = set()
             if category == 3:
-                upper = searchtext + "z";
-                query = Game.gql("WHERE title >= :1 AND title <= :2 ORDER BY title", searchtext, upper)
+                upper = searchtext.lower() + "z";
+                query = Game.gql("WHERE normalised_title >= :1 AND title <= :2 ORDER BY title", searchtext.lower(), upper)
                 games = query.fetch(100)
                 list = []
                 unique_game_titles = {}
@@ -554,12 +560,12 @@ class AutoCompleteHandler(BaseHandler):
                     if game.title not in unique_game_titles:
                         unique_game_titles[game.title] = True
                         list.append({"label":game.title, "value":game.title, "key":game.key().id()})
-                
+
                 self.response.out.write(json.dumps(list))
-                
+
             elif category == 2:
-                upper = searchtext + "z";
-                query = Movie.gql("WHERE title >= :1 AND title <= :2 ORDER BY title", searchtext, upper)
+                upper = searchtext.lower() + "z";
+                query = Movie.gql("WHERE normalised_title >= :1 AND title <= :2 ORDER BY title", searchtext.lower(), upper)
                 movies = query.fetch(100)
                 list = []
                 unique_movie_titles = {}
@@ -567,12 +573,12 @@ class AutoCompleteHandler(BaseHandler):
                     if movie.title not in unique_movie_titles:
                         unique_movie_titles[movie.title] = True
                         list.append({"label":movie.title, "value":movie.title, "key":movie.key().id()})
-                
+
                 self.response.out.write(json.dumps(list))
-                
+
             elif category == 1:
-                upper = searchtext + "z";
-                query = Book.gql("WHERE title >= :1 AND title <= :2 ORDER BY title", searchtext, upper)
+                upper = searchtext.lower() + "z";
+                query = Book.gql("WHERE normalised_title >= :1 AND title <= :2 ORDER BY title", searchtext.lower(), upper)
                 books = query.fetch(100)
                 list = []
                 unique_book_titles = {}
@@ -580,69 +586,54 @@ class AutoCompleteHandler(BaseHandler):
                     if book.title not in unique_book_titles:
                         unique_book_titles[book.title] = True
                         list.append({"label":book.title, "value":book.title, "key":book.key().id()})
-                
+
                 self.response.out.write(json.dumps(list))
         else:
             self.response.out.write(u'Login buddy')
             #self.response.out.write(json.dumps(["ActionScript0000", "AppleScript", "Asp", "BASIC"]))
-            
+
 class AddItemHandler(BaseHandler):
     """ Search action for game, action or book """
     def get(self):
         if self.user:
             """ web response to search query """
             category = int(self.request.get("category"))
-            # template_values = {'titletext' : category}
-            # self.response.out.write(template.render(
-            # os.path.join(
-            #     os.path.dirname(__file__), 'templates', 'addeditem.html'),
-            # template_values))
 
+            conn = rdbms.connect(instance=_INSTANCE_NAME, database='socialibrary')
+            cursor = conn.cursor()
             if category == 1:
-                author=self.request.get("author")
-                title=self.request.get("title")
-                rating=int(self.request.get("rating"))
-                lastupdated=datetime.datetime.now()
-                createdby=self.user.user_id
-                bk = Book(author=author, title=title, usercount=1, rating=rating, lastupdated=lastupdated, createdby=createdby)
-                bk.put()
-                fact=Fact(userID=self.user.user_id, userName=self.user.name, category=category, itemID=bk.key().id(), location=self.user.locationname, itemName=title)
-                fact.put()
-                template_values = {'titletext': bk.key().id()}
-                self.response.out.write(template.render(
-                        os.path.join(
-                            os.path.dirname(__file__), 'templates', 'addeditem.html'),
-                        template_values))
+                author = self.request.get("author")
+                title = self.request.get("title")
+                rating = int(self.request.get("rating"))
+                lastupdated = datetime.datetime.now()
+                created_by = self.user.user_id
+                cursor.execute('INSERT INTO books (title, author, rating, created_by) VALUES (%s, %s, %s, %s)', (title, author, rating, created_by))
+                cursor.execute('INSERT INTO owner_book_mapping(user_id, book_entry_id) VALUES (%s, %s)',(created_by, cursor.lastrowid))
             elif category == 2:
-                actor=self.request.get("actor")
-                title=self.request.get("title")
-                genre=self.request.get("genre")
-                rating=int(self.request.get("rating"))
-                lastupdated=datetime.datetime.now()
-                createdby=self.user.user_id
-                movie=Movie(actor=actor, title=title, genre=genre, usercount=1, rating=rating, lastupdated=lastupdated, createdby=createdby)
-                movie.put()
-                fact=Fact(userID=self.user.user_id, userName=self.user.name, category=category, itemID=movie.key().id(), location=self.user.locationname, itemName=title)
-                fact.put()
-                template_values = {'titletext': movie.key().id()}
-                self.response.out.write(template.render(
-                        os.path.join(
-                            os.path.dirname(__file__), 'templates', 'addeditem.html'),
-                        template_values))
+                actor = self.request.get("actor")
+                #director = self.request.get("director")
+                title = self.request.get("title")
+                genre = self.request.get("genre")
+                rating = int(self.request.get("rating"))
+                lastupdated = datetime.datetime.now()
+                created_by = self.user.user_id
+                cursor.execute('INSERT INTO movies (title, actor, rating, genre, created_by) VALUES (%s, %s, %s, %s, %s)', (title, actor, rating, genre, created_by))
+                cursor.execute('INSERT INTO owner_movie_mapping(user_id, movie_entry_id) VALUES (%s, %s)',(created_by, cursor.lastrowid))
             elif category == 3:
-                title=self.request.get("title")
-                rating=int(self.request.get("rating"))
-                createdby=self.user.user_id
-                lastupdated=datetime.datetime.now()
-                gam=Game(title=title, rating=rating, usercount=1, createdby=createdby, lastupdated=lastupdated)
-                gam.put()
-                fact=Fact(userID=self.user.user_id, userName=self.user.name, category=category, itemID=gam.key().id(), location=self.user.locationname, itemName=title)
-                fact.put()
-                template_values = {'titletext': gam.key().id()}
-                self.response.out.write(template.render(
-                        os.path.join(
-                            os.path.dirname(__file__), 'templates', 'addeditem.html'),
-                        template_values))
+                title = self.request.get("title")
+                platform = self.request.get("platform")
+                rating = int(self.request.get("rating"))
+                created_by = self.user.user_id
+                lastupdated = datetime.datetime.now()
+                cursor.execute('INSERT INTO games (title, platform, rating, created_by) VALUES (%s, %s, %s, %s)', (title, platform, rating, created_by))
+                cursor.execute('INSERT INTO owner_game_mapping(user_id, game_entry_id) VALUES (%s, %s)',(created_by, cursor.lastrowid))
+            conn.commit()
+            conn.close()
+            template_values = {'titletext': self.request.get("title")}
+            self.response.out.write(template.render(
+                    os.path.join(
+                        os.path.dirname(__file__), 'templates', 'addeditem.html'),
+                    template_values))
         else:
             self.render(u'welcome')
 

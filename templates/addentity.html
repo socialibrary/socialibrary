@@ -2,8 +2,83 @@
 
 {% block title %}Add item to socialibrary{% endblock %}
 {% block body %}
+<style>
+label,
+input,
+select,
+textarea {
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 13px;
+  font-weight: normal;
+  line-height: normal;
+}
+label {
+  padding-top: 6px;
+  font-size: 13px;
+  line-height: 18px;
+  float: left;
+  width: 130px;
+  text-align: right;
+  color: #404040;
+}
+form .input {
+  margin-left: 150px;
+}
+input[type=checkbox], input[type=radio] {
+  cursor: pointer;
+}
+input,
+textarea,
+select,
+.uneditable-input {
+  display: inline-block;
+  width: 210px;
+  height: 18px;
+  padding: 4px;
+  font-size: 13px;
+  line-height: 18px;
+  color: #808080;
+  border: 1px solid #ccc;
+  -webkit-border-radius: 3px;
+  -moz-border-radius: 3px;
+  border-radius: 3px;
+}
+select {
+  padding: initial;
+}
+input[type=checkbox], input[type=radio] {
+  width: auto;
+  height: auto;
+  padding: 0;
+  margin: 3px 0;
+  *margin-top: 0;
+
+  line-height: normal;
+  border: none;
+}
+input[type=file] {
+  background-color: #ffffff;
+  padding: initial;
+  border: initial;
+  line-height: initial;
+  -webkit-box-shadow: none;
+  -moz-box-shadow: none;
+  box-shadow: none;
+}
+input[type=button], input[type=reset], input[type=submit] {
+  width: auto;
+  height: auto;
+}
+select, input[type=file] {
+  height: 27px;
+  *height: auto;
+  line-height: 27px;
+  *margin-top: 4px;
+
+}
+</style>
 <script type="text/javascript">
-   
+
   var txt_Book =  "<div class='clearfix'> \
     <label>Search category:<\/label> \
      <div class='input'> \
@@ -38,7 +113,7 @@
     <input type='text' name='title' id='title'\/> <br\/> <br\/> \
     <\/div> \
     <\/div> \
-    <div class='actions'> \
+    <div class='actions span6'> \
     <button type='button' class='btn primary' name='addbook' id='addbook' onclick='sendrequest(this.form)'> add book <\/button> \
     <\/div> \
     ";
@@ -112,7 +187,7 @@
       <\/select> \
     <\/div> \
      <\/div> \
-     <div class='actions'> \
+     <div class='actions span6'> \
     <button type='button' class='btn primary' name='addmovie' id='addmovie' onclick='sendrequest(this.form)'> add movie <\/button> \
     <\/div> \
     ";
@@ -157,7 +232,7 @@
       <\/select>  \
      <\/div> \
      <\/div> \
-     <div class='actions'> \
+     <div class='actions span6'> \
     <button type='button' class='btn primary' name='addgame' id='addgame' onclick='sendrequest(this.form)'> add game <\/button> \
     <\/div> \
     ";
@@ -168,8 +243,9 @@
 
   function formreload(form)
   {
+    document.getElementById("message").setAttribute("class", "");
     var dropdownval = form.category.value;
-    
+
     if (dropdownval == 1)
     {
     form.innerHTML=txt_Book;
@@ -200,6 +276,7 @@
       if (xmlhttp.readyState==4 && xmlhttp.status==200)
       {
         document.getElementById("message").innerHTML=xmlhttp.responseText;
+        document.getElementById("message").setAttribute("class", "alert-message block-message success span8");
 	if (form.category.value == 1) {
 	  form.innerHTML=txt_Book;
 	}
@@ -236,8 +313,8 @@
 
   <form id="addform" name="addform">
     <div class="clearfix">
-    <label>Search category:</label> 
-    <div class="input"> 
+    <label>Search category:</label>
+    <div class="input">
     <select name="category" id="category" onchange="formreload(this.form)">
       <option value="1" selected="selected">Book</option>
       <option value="2">Movie</option>
@@ -246,9 +323,9 @@
     </div>
     </div>
     <div class="clearfix">
-    <label>Rating:</label> 
+    <label>Rating:</label>
     <div class="input">
-    <select name="rating" id="rating">
+    <select name='rating' id='rating'>
       <option value="1">1</option>
       <option value="2">2</option>
       <option value="3">3</option>
@@ -269,11 +346,11 @@
     <input type="text" name="title" id="title"/><br/><br/>
     </div>
     </div>
-    <div class="actions">
-    <button class="btn primary" type="button" name="addbook" id="addbook" onclick="sendrequest(this.form)"> add book </button> 
+    <div class="actions span6">
+    <button class="btn primary" type="button" name="addbook" id="addbook" onclick="sendrequest(this.form)"> add book </button>
     </div>
   </form>
-  <div id="message" name="message">
+  <div id="message" name="message" >
   </div>
 </div>
 {% endblock %}

@@ -38,7 +38,7 @@
   <h2>Search the socialibrary</h2>
 
   <form id="searchform" name="searchform" action="/searchitem" style="margin-top: 1em;">
-        <div id="radioset" >
+        <div id="radioset"  >
           <input type="radio" id="radio1" name="radio_group" checked="checked" value="1" /><label for="radio1">Books</label>
           <input type="radio" id="radio2" name="radio_group" value="2" /><label for="radio2">Movies</label>
           <input type="radio" id="radio3" name="radio_group" value="3" /><label for="radio3">Games</label>
@@ -49,13 +49,13 @@
       <input id="tags" />
     </div>
  </form>
-  
+
 
   <div id="message" name="message" />
 </div>
 
 <script type="text/javascript" src="js/jquery-1.6.2.min.js"></script>
-<script type="text/javascript" src="js/jquery-ui-1.8.16.custom.min.js"></script>	
+<script type="text/javascript" src="js/jquery-ui-1.8.16.custom.min.js"></script>
 
 <script type="text/javascript">
 
@@ -78,16 +78,16 @@ $("#tags").autocomplete({
           dataType: "text",
           method: "get",
           success:  function(data){
-                      
+
                       document.getElementById("message").innerHTML=data;
                   },
           error: function(x,e){
                 console.error(e);
-            },  
+            },
           });
   },
-  
+
   });
-  
+
  </script>
 {% endblock %}
