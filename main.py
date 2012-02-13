@@ -547,50 +547,51 @@ class AutoCompleteHandler(BaseHandler):
     def get(self):
         if self.user:
             """ web response to search query """
+            conn = rdbms.connect(instance=_INSTANCE_NAME, database='socialibrary')
+            cursor = conn.cursor()
             searchtext = self.request.get("search_term")
+            cleaned_searchtext = "%"+searchtext.replace("%","%%")+"%"
             category = int(self.request.get("category"))
             result = set()
             if category == 3:
-                upper = searchtext.lower() + "z";
-                query = Game.gql("WHERE normalised_title >= :1 AND title <= :2 ORDER BY title", searchtext.lower(), upper)
-                games = query.fetch(100)
+                cursor.execute('SELECT * FROM games WHERE title LIKE %s',(cleaned_searchtext))
+                games =  cursor.fetchall()
                 list = []
                 unique_game_titles = {}
                 for game in games:
-                    if game.title not in unique_game_titles:
-                        unique_game_titles[game.title] = True
-                        list.append({"label":game.title, "value":game.title, "key":game.key().id()})
-
+                    if game[0] not in unique_game_titles:
+                        unique_game_titles[game[0]] = True
+                        list.append({"label":game[0], "value":game[0], "key":game[3]})
                 self.response.out.write(json.dumps(list))
 
             elif category == 2:
-                upper = searchtext.lower() + "z";
-                query = Movie.gql("WHERE normalised_title >= :1 AND title <= :2 ORDER BY title", searchtext.lower(), upper)
-                movies = query.fetch(100)
+                cursor.execute('SELECT * FROM movies WHERE title LIKE %s',(cleaned_searchtext))
+                movies =  cursor.fetchall()
                 list = []
                 unique_movie_titles = {}
                 for movie in movies:
-                    if movie.title not in unique_movie_titles:
-                        unique_movie_titles[movie.title] = True
-                        list.append({"label":movie.title, "value":movie.title, "key":movie.key().id()})
+                    if movie[0] not in unique_movie_titles:
+                        unique_movie_titles[movie[0]] = True
+                        list.append({"label":movie[0], "value":movie[0], "key":movie[4]})
 
                 self.response.out.write(json.dumps(list))
 
             elif category == 1:
-                upper = searchtext.lower() + "z";
-                query = Book.gql("WHERE normalised_title >= :1 AND title <= :2 ORDER BY title", searchtext.lower(), upper)
-                books = query.fetch(100)
+
+                cursor.execute('SELECT * FROM books WHERE title LIKE %s',(cleaned_searchtext))
+                books =  cursor.fetchall()
                 list = []
                 unique_book_titles = {}
                 for book in books:
-                    if book.title not in unique_book_titles:
-                        unique_book_titles[book.title] = True
-                        list.append({"label":book.title, "value":book.title, "key":book.key().id()})
+                    if book[0] not in unique_book_titles:
+                        unique_book_titles[book[0]] = True
+                        list.append({"label":book[0], "value":book[0], "key":book[3]})
 
                 self.response.out.write(json.dumps(list))
+            conn.commit()
+            conn.close()
         else:
             self.response.out.write(u'Login buddy')
-            #self.response.out.write(json.dumps(["ActionScript0000", "AppleScript", "Asp", "BASIC"]))
 
 class AddItemHandler(BaseHandler):
     """ Search action for game, action or book """
