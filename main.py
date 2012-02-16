@@ -27,6 +27,7 @@ from django.utils import simplejson as json
 from functools import wraps
 from google.appengine.api import urlfetch, taskqueue, rdbms
 from google.appengine.ext import db, webapp
+from google.appengine.ext.webapp.util import run_wsgi_app
 from google.appengine.ext.webapp import util, template
 from google.appengine.runtime import DeadlineExceededError
 from random import randrange
@@ -42,12 +43,16 @@ import logging
 import time
 import traceback
 import urllib
+import simplejson
 from google.appengine.api import urlfetch
 
 import locale
 import urllib2
 
 _INSTANCE_NAME = 'socialibrary-db:socialibrary'
+
+##facebook location database
+#http://facebook.com/ajax/typeahead/search.php?__a=1&value=che&category&filter[0]=page&page_categories[0]=2404&context=hubs_location&services_mask=1&viewer=517160144
 
 def htmlescape(text):
     """Escape text for use as HTML"""
@@ -89,6 +94,7 @@ class User(db.Model):
     locationname = db.StringProperty()
     friends = db.StringListProperty()
     dirty = db.BooleanProperty()
+    location_entered = db.BooleanProperty(default = False)
 
     def refresh_data(self):
         """Refresh this user's data using the Facebook Graph API"""
@@ -102,11 +108,11 @@ class User(db.Model):
         loc = me.get(u'location')
         logging.info(loc)
         if loc != None:
-        	self.locationid = loc['id']
-	        self.locationname = loc['name']
+            self.locationid = loc['id']
+            self.locationname = loc['name']
         else:
-		self.locationid = "No place entered"
-	        self.locationname = "No place entered"
+            self.locationid = "No place entered"
+            self.locationname = "No place entered"
 
         self.friends = [user[u'id'] for user in me[u'friends'][u'data']]
         return self.put()
@@ -433,92 +439,85 @@ class WelcomeHandler(BaseHandler):
 
 class SearchItemHandler(BaseHandler):
     """ Search action for game, action or book """
-    def getfacts(self, entityresultset, category, tmpcnt):
-        result = set()
-        cnt = tmpcnt
-        for entity in entityresultset:
-            if cnt >= 100:
-                break
-            query = Fact.gql("WHERE itemID = :1 AND category = :2 AND location=:3", entity.key().id(), category, self.user.locationname)
-            sameloc = query.fetch(100)
-            for tmpfact in sameloc:
-                if cnt >= 100:
-                    break
-                cnt=cnt+1
-                result.add(tmpfact)
-            if cnt >= 100:
-                break
-            query = Fact.gql("WHERE itemID = :1 AND category = :2 AND location != :3", entity.key().id(), category, self.user.locationname)
-            diffloc = query.fetch(100)
-            for tmpfact in diffloc:
-                if cnt > 100:
-                    break
-                cnt=cnt+1
-                result.add(tmpfact)
-        return result, cnt
+    # def getfacts(self, entityresultset, category, tmpcnt):
+    #     result = set()
+    #     cnt = tmpcnt
+    #     for entity in entityresultset:
+    #         if cnt >= 100:
+    #             break
+    #         query = Fact.gql("WHERE itemID = :1 AND category = :2 AND location=:3", entity.key().id(), category, self.user.locationname)
+    #         sameloc = query.fetch(100)
+    #         for tmpfact in sameloc:
+    #             if cnt >= 100:
+    #                 break
+    #             cnt=cnt+1
+    #             result.add(tmpfact)
+    #         if cnt >= 100:
+    #             break
+    #         query = Fact.gql("WHERE itemID = :1 AND category = :2 AND location != :3", entity.key().id(), category, self.user.locationname)
+    #         diffloc = query.fetch(100)
+    #         for tmpfact in diffloc:
+    #             if cnt > 100:
+    #                 break
+    #             cnt=cnt+1
+    #             result.add(tmpfact)
+    #     return result, cnt
 
     def get(self):
         if self.user:
+            conn = rdbms.connect(instance=_INSTANCE_NAME, database='socialibrary')
+            cursor = conn.cursor()
+
             """ web response to search query """
-            searchtext = self.request.get("searchbox")
+            search_key = self.request.get("search_key")
             category = int(self.request.get("category"))
             result = set()
+            #location = self.user.locationid #Production
+            location = 'bangalore' # test
             if category == 3:
-                upper = searchtext + "z";
-                query = Game.gql("WHERE title >= :1 AND title <= :2 ORDER BY title ASC", searchtext, upper)
-                tmp = query.fetch(100)
-                cnt = 0
-                tmpres, tmpcnt = self.getfacts(tmp, category, cnt)
-                template_values = {'titletext': 'Game', 'users' : tmpres}
-                self.response.out.write(template.render(
-                        os.path.join(
-                            os.path.dirname(__file__), 'templates', 'searcheditem.html'),
-                        template_values))
+                users = []
+                cursor.execute('SELECT * FROM owner_game_mapping WHERE game_entry_id = %s AND user_location = %s',(search_key, location))
+
+                mappings = cursor.fetchall()
+                for mapping in mappings:
+                    user_query = User.gql("WHERE user_id = :1", mapping[1])
+                    user = user_query.fetch(1)
+                    cursor.execute('SELECT title FROM games WHERE entryID = %s',(mapping[2]))
+                    title = cursor.fetchone()
+                    users.append({'item_name': title[0], 'user_name': user[0].name})
+
             elif category == 2:
-                upper = searchtext+"z"
-                query = Movie.gql("WHERE title >= :1 AND title <= :2 ORDER BY title", searchtext, upper)
-                tmp = query.fetch(100)
-                cnt = 0
-                tmpres, tmpcnt = self.getfacts(tmp, category, cnt)
-                result = result.union(tmpres)
-                cnt = tmpcnt
-                if cnt < 100:
-                    query = Movie.gql("WHERE genre = :1 ORDER BY genre", searchtext)
-                    tmp = query.fetch(100)
-                    tmpres, tmpcnt = self.getfacts(tmp, category, cnt)
-                    result = result.union(tmpres)
-                    cnt = tmpcnt
-                if cnt < 100:
-                    query = Movie.gql("WHERE actor >= :1 and actor <= :2 ORDER BY actor", searchtext, upper)
-                    tmp = query.fetch(100)
-                    tmpres, tmpcnt = self.getfacts(tmp, category, cnt)
-                    result = result.union(tmpres)
-                    cnt = tmpcnt
-                template_values = {'titletext' : 'Movies', 'users' : result}
-                self.response.out.write(template.render(
-                        os.path.join(
-                            os.path.dirname(__file__), 'templates', 'searcheditem.html'),
-                        template_values))
+                users = []
+                cursor.execute('SELECT * FROM owner_movie_mapping WHERE movie_entry_id = %s AND user_location = %s',(search_key, location))
+                mappings = cursor.fetchall()
+                for mapping in mappings:
+                    user_query = User.gql("WHERE user_id = :1", mapping[1])
+                    user = user_query.fetch(1)
+                    cursor.execute('SELECT title FROM movies WHERE entryID = %s',(mapping[2]))
+                    title = cursor.fetchone()
+                    users.append({'item_name': title[0], 'user_name': user[0].name})
+
+
             elif category == 1:
-                upper = searchtext + "z";
-                #import pdb; pdb.set_trace()
-                query = Book.gql("WHERE title >= :1 AND title <= :2 ORDER BY title", searchtext, upper)
-                tmp = query.fetch(100)
-                cnt = 0
-                tmpres, tmpcnt = self.getfacts(tmp, category, cnt)
-                result = result.union(tmpres)
-                cnt = tmpcnt
-                if cnt < 100:
-                    query = Book.gql("WHERE author >= :1 and author <= :2 ORDER BY author", searchtext, upper)
-                    tmp = query.fetch(100)
-                    tmpres, tmpcnt = self.getfacts(tmp, category, cnt)
-                    result = result.union(tmpres)
-                    cnt = tmpcnt
-                template_values = {'titletext' : 'Book', 'users' : result}
-                self.response.out.write(template.render(
-                        os.path.join(
-                            os.path.dirname(__file__), 'templates', 'searcheditem.html'),
-                        template_values))
+                users = []
+                cursor.execute('SELECT * FROM owner_book_mapping WHERE book_entry_id = %s AND user_location = %s',(search_key, location))
+
+                mappings = cursor.fetchall()
+                for mapping in mappings:
+                    user_query = User.gql("WHERE user_id = :1", mapping[2])
+                    user = user_query.fetch(1)
+                    cursor.execute('SELECT title FROM books WHERE entryID = %s',(mapping[1]))
+                    title = cursor.fetchone()
+                    users.append({'item_name': title[0], 'user_name': user[0].name})
+
+
+            template_values = {'users' : users, 'category': category}
+            self.response.out.write(template.render(
+                    os.path.join(
+                        os.path.dirname(__file__), 'templates', 'searcheditem.html'),
+                    template_values))
+            conn.commit()
+            conn.close()
         else:
             self.render(u'welcome')
 
@@ -527,7 +526,16 @@ class SearchHandler(BaseHandler):
     def get(self):
         if self.user:
             """ web response to search query """
-            self.render(u'search')
+            if not self.user.location_entered:
+                if self.user.locationid and not self.user.locationid == "No place entered":
+                    conn = rdbms.connect(instance=_INSTANCE_NAME, database='socialibrary')
+                    cursor = conn.cursor()
+                    cursor.execute("INSERT INTO user_info (user_id, user_location, user_rating) values (%s, %s, %s)",
+                                  (self.user.user_id, self.user.locationid, 2.5))
+                else:
+                    self.render(u'search', get_location=True, user_id=self.user.user_id)
+            else:
+                self.render(u'search', get_location=False)
             #This is code to update the counter of the app.
             #url='https://api.facebook.com/method/dashboard.setCount?count=30&uid='+self.user.user_id+'&access_token='+self.user.access_token+'&format=json'
             #urllib.urlopen(url)
@@ -542,6 +550,44 @@ class AddHandler(BaseHandler):
             self.render(u'addentity')
         else:
             self.render(u'welcome')
+
+class UpdateLocation(BaseHandler):
+    def get(self):
+        if self.user:
+            """ web response to search query """
+            location_id = self.request.get("location")
+            self.user.location_entered = True
+            conn = rdbms.connect(instance=_INSTANCE_NAME, database='socialibrary')
+            cursor = conn.cursor()
+            cursor.execute("INSERT INTO user_info (user_id, user_location) values(%s, %s)",(self.user.user_id, location_id))
+            conn.commit()
+            conn.close()
+            status ={'success':True}
+            self.response.out.write(json.dumps(status))
+        else:
+            self.response.out.write("Login Buddy")
+
+class PlacesHandler(BaseHandler):
+    def get(self):
+        if self.user:
+            """ web response to search query """
+            searchtext = self.request.get("search_term")
+
+            list = []
+            url = 'https://maps.googleapis.com/maps/api/place/autocomplete/json?input=%s&sensor=false&key=AIzaSyDR743Q6Dt6mKyGSKybFxDEqMgwFI-MX5U'%searchtext
+            try:
+              result = simplejson.load(urllib.urlopen(url))
+
+              for value in result['predictions']:
+
+                 if 'locality' in value['types']:
+                    list.append({"label":value['description'],"value":value['description'], "key":value['id']})
+            except urllib2.URLError, e:
+              handleError(e)
+
+            self.response.out.write(json.dumps(list))
+        else:
+            self.response.out.write("Login Buddy")
 
 class AutoCompleteHandler(BaseHandler):
     def get(self):
@@ -602,6 +648,8 @@ class AddItemHandler(BaseHandler):
 
             conn = rdbms.connect(instance=_INSTANCE_NAME, database='socialibrary')
             cursor = conn.cursor()
+            #location = self.user.locationid #Production
+            location = 'bangalore' # test
             if category == 1:
                 author = self.request.get("author")
                 title = self.request.get("title")
@@ -646,6 +694,8 @@ def main():
         (r'/add', AddHandler),
         (r'/additem', AddItemHandler),
         (r'/search_ac', AutoCompleteHandler),
+        (r'/search_places', PlacesHandler),
+        (r'/update_location', UpdateLocation),
     ]
     application = webapp.WSGIApplication(routes,
         debug=os.environ.get('SERVER_SOFTWARE', '').startswith('Dev'))

@@ -35,6 +35,19 @@
   }
 </script>
 <div class="search">
+{%if get_location%}
+  <div class="alert-message block-message warning fade in span12">
+  <p> We need to know your location to get results from your locality.</br>
+  Please type in and select your locality.</br><b>Hold on for a second to get suggestions</b></p>
+  <input id="locs" /><img class="promo" alt="This is where images will come" src="/google.png" style="vertical-align:bottom">
+  </br></br>
+  <button class="btn" id="location_select" onClick="location_select()" >Confirm Location</button>
+  </div>
+  <div id="message" name="message" >
+  </div>
+  {%endif%}
+
+
   <h2>Search the socialibrary</h2>
 
   <form id="searchform" name="searchform" action="/searchitem" style="margin-top: 1em;">
@@ -46,7 +59,7 @@
         </br>
         <div class="ui-widget">
       <label for="tags">Search: </label>
-      <input id="tags" />
+      <input id="tags" {%if get_location%} disabled="disabled" {%endif%} />
     </div>
  </form>
 
@@ -56,6 +69,8 @@
 
 <script type="text/javascript" src="js/jquery-1.6.2.min.js"></script>
 <script type="text/javascript" src="js/jquery-ui-1.8.16.custom.min.js"></script>
+<script type="text/javascript" src="bootstrap/js/bootstrap-alerts.js"></script>
+
 
 <script type="text/javascript">
 
@@ -73,8 +88,8 @@ $("#tags").autocomplete({
           });},
   minLength:3,
   select:function(event,ui){
-  $.ajax({url:"http://localhost:8080/searchitem",
-          data: { searchbox: ui.item.label, category: $('input[name=radio_group]:checked').val() },
+  $.ajax({url:"/searchitem",
+          data: { search_key: ui.item.key, category: $('input[name=radio_group]:checked').val() },
           dataType: "text",
           method: "get",
           success:  function(data){
@@ -89,5 +104,68 @@ $("#tags").autocomplete({
 
   });
 
+{%if get_location%}
+selected_id="None";
+just_selected=false;
+last_length = 0;
+$(".alert-message").alert()
+$("#locs").autocomplete({
+  source: function(request, response) {
+  $.ajax({url:"/search_places",
+          data: { search_term: request.term, category: $('input[name=radio_group]:checked').val() },
+          dataType: "json",
+          method: "get",
+            success:  function(data){
+                      response(data);
+                  },
+          });},
+   delay: 500,
+   select:function(event,ui){
+
+      just_selected=true;
+      selected_id = ui.item.key;
+      last_length = ui.item.value.length
+   },
+   change:function(event,ui){
+    if(just_selected)
+    {
+      if(!(last_length == document.getElementById("locs").value.length))
+      {
+        just_selected = false;
+        selected_id = "None";
+      }
+
+    }
+
+   },
+  });
+function location_select()
+{
+  if(selected_id == "None")
+  {
+    document.getElementById("message").innerHTML="<b>Please select a location from the dropdown and don't edit once selected.</b>";
+    document.getElementById("message").setAttribute("class", "alert-message block-message error span12");
+  }
+  else{
+  $.ajax({url:"/update_location",
+          data: { location: selected_id},
+          dataType: "json",
+          method: "get",
+            success:  function(data){
+                      if(data.success)
+                      {
+                        //$(".alert-message").alert('close')
+                        document.getElementById("location_select").disabled=true;
+                        document.getElementById("locs").disabled=true;
+                        document.getElementById("message").innerHTML="Location successfully updated";
+                        document.getElementById("message").setAttribute("class", "alert-message block-message success span12");
+                        document.getElementById("tags").disabled=false;
+                      }
+                  },
+          });
+
+ }
+}
+{%endif%}
  </script>
 {% endblock %}
