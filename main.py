@@ -439,30 +439,6 @@ class WelcomeHandler(BaseHandler):
 
 class SearchItemHandler(BaseHandler):
     """ Search action for game, action or book """
-    # def getfacts(self, entityresultset, category, tmpcnt):
-    #     result = set()
-    #     cnt = tmpcnt
-    #     for entity in entityresultset:
-    #         if cnt >= 100:
-    #             break
-    #         query = Fact.gql("WHERE itemID = :1 AND category = :2 AND location=:3", entity.key().id(), category, self.user.locationname)
-    #         sameloc = query.fetch(100)
-    #         for tmpfact in sameloc:
-    #             if cnt >= 100:
-    #                 break
-    #             cnt=cnt+1
-    #             result.add(tmpfact)
-    #         if cnt >= 100:
-    #             break
-    #         query = Fact.gql("WHERE itemID = :1 AND category = :2 AND location != :3", entity.key().id(), category, self.user.locationname)
-    #         diffloc = query.fetch(100)
-    #         for tmpfact in diffloc:
-    #             if cnt > 100:
-    #                 break
-    #             cnt=cnt+1
-    #             result.add(tmpfact)
-    #     return result, cnt
-
     def get(self):
         if self.user:
             conn = rdbms.connect(instance=_INSTANCE_NAME, database='socialibrary')
@@ -472,11 +448,15 @@ class SearchItemHandler(BaseHandler):
             search_key = self.request.get("search_key")
             category = int(self.request.get("category"))
             result = set()
-            #location = self.user.locationid #Production
-            location = 'bangalore' # test
+            cursor.execute('SELECT user_location FROM user_info WHERE user_id = %s',(self.user.user_id))
+
+            location = cursor.fetchone()[0]
+
             if category == 3:
                 users = []
-                cursor.execute('SELECT * FROM owner_game_mapping WHERE game_entry_id = %s AND user_location = %s',(search_key, location))
+                cursor.execute('SELECT * FROM owner_game_mapping,user_info WHERE \
+                 owner_game_mapping.user_id=user_info.user_id AND owner_game_mapping.game_entry_id=%s \
+                 AND user_info.user_location = %s ORDER BY user_info.user_rating DESC',(search_key, location))
 
                 mappings = cursor.fetchall()
                 for mapping in mappings:
@@ -488,7 +468,9 @@ class SearchItemHandler(BaseHandler):
 
             elif category == 2:
                 users = []
-                cursor.execute('SELECT * FROM owner_movie_mapping WHERE movie_entry_id = %s AND user_location = %s',(search_key, location))
+                cursor.execute('SELECT * FROM owner_movie_mapping,user_info WHERE \
+                 owner_movie_mapping.user_id=user_info.user_id AND owner_movie_mapping.movie_entry_id=%s \
+                 AND user_info.user_location = %s ORDER BY user_info.user_rating DESC',(search_key, location))
                 mappings = cursor.fetchall()
                 for mapping in mappings:
                     user_query = User.gql("WHERE user_id = :1", mapping[1])
@@ -500,8 +482,9 @@ class SearchItemHandler(BaseHandler):
 
             elif category == 1:
                 users = []
-                cursor.execute('SELECT * FROM owner_book_mapping WHERE book_entry_id = %s AND user_location = %s',(search_key, location))
-
+                cursor.execute('SELECT * FROM owner_book_mapping,user_info WHERE \
+                 owner_book_mapping.user_id=user_info.user_id AND owner_book_mapping.book_entry_id=%s \
+                 AND user_info.user_location = %s ORDER BY user_info.user_rating DESC',(search_key, location))
                 mappings = cursor.fetchall()
                 for mapping in mappings:
                     user_query = User.gql("WHERE user_id = :1", mapping[2])
@@ -557,6 +540,7 @@ class UpdateLocation(BaseHandler):
             """ web response to search query """
             location_id = self.request.get("location")
             self.user.location_entered = True
+            self.user.save()
             conn = rdbms.connect(instance=_INSTANCE_NAME, database='socialibrary')
             cursor = conn.cursor()
             cursor.execute("INSERT INTO user_info (user_id, user_location) values(%s, %s)",(self.user.user_id, location_id))
@@ -648,8 +632,7 @@ class AddItemHandler(BaseHandler):
 
             conn = rdbms.connect(instance=_INSTANCE_NAME, database='socialibrary')
             cursor = conn.cursor()
-            #location = self.user.locationid #Production
-            location = 'bangalore' # test
+
             if category == 1:
                 author = self.request.get("author")
                 title = self.request.get("title")
