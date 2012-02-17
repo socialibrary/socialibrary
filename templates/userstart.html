@@ -3,9 +3,16 @@
 {% block title %}Welcome{% endblock %}
 {% block body %}
 
+
      <div class="row">
         <div class="span7">
-            <img class="promo" alt="This is where images will come" src="/splash.gif">
+
+                <div id="gallery">
+                    <a href="#" class="show">
+                    <img src="splash.gif" alt="Read" width="350" height="360" title=""/>
+                    </a>
+                    <div class="caption"><div class="content"></div></div>
+                </div>
         </div>
         <div class="row">
         <div class="span4">
@@ -69,7 +76,28 @@
 
 <script type="text/javascript" src="js/jquery-1.6.2.min.js"></script>
 <script type="text/javascript" src="js/jquery-ui-1.8.16.custom.min.js"></script>
+<script>
+    picarray = ['splash.gif', 'splash2.jpg', 'splash3.jpg']
+    init_value = 0
+    $(document).ready(function() {
 
+        //Execute the slideShow
+        setInterval('gallery()',6000);
+
+    });
+
+    function gallery() {
+
+        init_value = (init_value + 1) %3
+        var current = $('#gallery a.show')
+        current.fadeOut(800,function() {
+            current.find('img').attr('src', picarray[init_value])
+            current.fadeIn(3000)
+        });
+    }
+
+
+</script>
 <script type="text/javascript">
 $('#tabs').tabs();
  function search()
